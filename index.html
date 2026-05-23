@@ -108,6 +108,7 @@ label{font-size:12px;color:#555;display:block;margin-bottom:4px}
   <div class="nav">
     <button class="active" onclick="showPanel('dashboard')">Inicio</button>
     <button onclick="showPanel('empleados')">Empleados</button>
+    <button onclick="showPanel('turnos')">Turnos</button>
     <button onclick="showPanel('generar')">Generar malla</button>
     <button onclick="showPanel('historial')">Historial</button>
     <button onclick="showPanel('publicar')">Publicar</button>
@@ -167,6 +168,32 @@ label{font-size:12px;color:#555;display:block;margin-bottom:4px}
     </div>
   </div>
   <div id="emp-list"></div>
+</div>
+
+<div id="panel-turnos" class="panel">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div class="section-title" style="margin:0;border:none;padding:0">Catálogo de turnos</div>
+    <button class="primary" onclick="toggleAddTurno()">+ Nuevo turno</button>
+  </div>
+  <div class="info-box" style="margin-bottom:14px">Los códigos de turno son internos — tú los ves en la gestión pero los empleados ven la hora de entrada, salida y si incluye almuerzo.</div>
+  <div id="add-turno-form" style="display:none;background:#f9f9f8;border-radius:10px;padding:16px;margin-bottom:14px;border:0.5px solid #ddd">
+    <div class="section-title">Nuevo turno</div>
+    <div class="form-row cols3">
+      <div><label>Código</label><input id="nt-codigo" placeholder="Ej: 13, T1, MAÑANA"></div>
+      <div><label>Entrada</label><input id="nt-entrada" placeholder="Ej: 8am"></div>
+      <div><label>Salida</label><input id="nt-salida" placeholder="Ej: 5pm"></div>
+    </div>
+    <div class="form-row cols3">
+      <div><label>Horas laborales</label><input id="nt-horas" type="number" min="1" max="12" placeholder="8"></div>
+      <div><label>¿Incluye almuerzo?</label><select id="nt-almuerzo"><option value="no">No (S/A)</option><option value="si">Sí (+1h almuerzo)</option></select></div>
+      <div><label>Descripción</label><input id="nt-desc" placeholder="Ej: Turno estándar mañana"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="primary" onclick="addTurno()">Guardar turno</button>
+      <button class="secondary" onclick="toggleAddTurno()">Cancelar</button>
+    </div>
+  </div>
+  <div id="turnos-list"></div>
 </div>
 
 <div id="panel-generar" class="panel">
@@ -309,7 +336,111 @@ const EMPLEADOS_DEFAULT = [
   {id:9, nombre:'Vacante — Analista de compras', cargo:'Analista de compras', entrada:'-', salida:'-', estado:'Vacante', regla:'Reemplaza a Yulieth Andrea Brieño', color:'#F09595'},
 ];
 
-function loadEmpleados() {
+const TURNOS_KEY = 'malla_turnos_cat_v1';
+
+const TURNOS_DEFAULT = [
+  {codigo:'13', entrada:'8am', salida:'5pm', horas:8, almuerzo:true,  desc:'Turno estándar mañana'},
+  {codigo:'14', entrada:'7am', salida:'3pm', horas:8, almuerzo:false, desc:'Turno temprano S/A'},
+  {codigo:'15', entrada:'8am', salida:'4pm', horas:7, almuerzo:true,  desc:'Turno corto mañana'},
+  {codigo:'16', entrada:'8am', salida:'2pm', horas:6, almuerzo:false, desc:'Medio turno mañana'},
+  {codigo:'17', entrada:'7am', salida:'1pm', horas:6, almuerzo:false, desc:'Medio turno temprano'},
+  {codigo:'26', entrada:'4am', salida:'12pm',horas:8, almuerzo:false, desc:'Turno madrugada'},
+  {codigo:'28', entrada:'6am', salida:'3pm', horas:8, almuerzo:true,  desc:'Turno madrugada largo'},
+  {codigo:'41', entrada:'8am', salida:'12pm',horas:4, almuerzo:false, desc:'Medio día mañana'},
+  {codigo:'42', entrada:'6am', salida:'2pm', horas:8, almuerzo:false, desc:'Turno 6am S/A'},
+  {codigo:'45', entrada:'8am', salida:'6pm', horas:9, almuerzo:true,  desc:'Turno largo mañana'},
+  {codigo:'46', entrada:'7am', salida:'5pm', horas:9, almuerzo:true,  desc:'Turno largo 7am'},
+  {codigo:'52', entrada:'7am', salida:'4pm', horas:8, almuerzo:true,  desc:'Turno 7am estándar'},
+  {codigo:'54', entrada:'7am', salida:'12pm',horas:5, almuerzo:false, desc:'Turno corto 7am'},
+  {codigo:'56', entrada:'8am', salida:'3pm', horas:6, almuerzo:true,  desc:'Turno 8am corto almuerzo'},
+  {codigo:'57', entrada:'6am', salida:'4pm', horas:9, almuerzo:true,  desc:'Turno largo 6am'},
+  {codigo:'58', entrada:'12pm',salida:'6pm', horas:6, almuerzo:false, desc:'Turno tarde S/A'},
+  {codigo:'60', entrada:'9am', salida:'6pm', horas:8, almuerzo:true,  desc:'Turno 9am estándar'},
+  {codigo:'D',  entrada:'-',   salida:'-',   horas:0, almuerzo:false, desc:'Descanso'},
+  {codigo:'V',  entrada:'-',   salida:'-',   horas:0, almuerzo:false, desc:'Vacaciones'},
+  {codigo:'F',  entrada:'-',   salida:'-',   horas:0, almuerzo:false, desc:'Día de la familia'},
+  {codigo:'C',  entrada:'-',   salida:'-',   horas:0, almuerzo:false, desc:'Compensatorio'},
+  {codigo:'INVENT',entrada:'6am',salida:'?', horas:8, almuerzo:false, desc:'Inventario fin de mes'},
+];
+
+function loadTurnos() {
+  try { const s = localStorage.getItem(TURNOS_KEY); return s ? JSON.parse(s) : null; } catch(e){ return null; }
+}
+function saveTurnos(t) {
+  try { localStorage.setItem(TURNOS_KEY, JSON.stringify(t)); } catch(e){}
+}
+
+let catalogoTurnos = loadTurnos() || JSON.parse(JSON.stringify(TURNOS_DEFAULT));
+
+function getTurno(codigo) {
+  return catalogoTurnos.find(t => t.codigo === String(codigo)) || {codigo, entrada:'-', salida:'-', horas:0, almuerzo:false, desc:codigo};
+}
+
+function toggleAddTurno() {
+  const f = document.getElementById('add-turno-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+function addTurno() {
+  const codigo = document.getElementById('nt-codigo').value.trim();
+  const entrada = document.getElementById('nt-entrada').value.trim();
+  const salida = document.getElementById('nt-salida').value.trim();
+  const horas = parseInt(document.getElementById('nt-horas').value) || 0;
+  const almuerzo = document.getElementById('nt-almuerzo').value === 'si';
+  const desc = document.getElementById('nt-desc').value.trim();
+  if (!codigo || !entrada || !salida) { alert('Completa código, entrada y salida'); return; }
+  const existing = catalogoTurnos.findIndex(t => t.codigo === codigo);
+  const turno = {codigo, entrada, salida, horas, almuerzo, desc};
+  if (existing >= 0) catalogoTurnos[existing] = turno;
+  else catalogoTurnos.push(turno);
+  saveTurnos(catalogoTurnos);
+  renderTurnos();
+  document.getElementById('add-turno-form').style.display = 'none';
+  ['nt-codigo','nt-entrada','nt-salida','nt-horas','nt-desc'].forEach(id => document.getElementById(id).value = '');
+}
+
+function deleteTurno(codigo) {
+  const especiales = ['D','V','F','C','INVENT'];
+  if (especiales.includes(codigo)) { alert('Los códigos especiales (D, V, F, C, INVENT) no se pueden eliminar.'); return; }
+  if (!confirm(`¿Eliminar el turno ${codigo}?`)) return;
+  catalogoTurnos = catalogoTurnos.filter(t => t.codigo !== codigo);
+  saveTurnos(catalogoTurnos);
+  renderTurnos();
+}
+
+function renderTurnos() {
+  const list = document.getElementById('turnos-list');
+  const especiales = ['D','V','F','C','INVENT'];
+  const laborales = catalogoTurnos.filter(t => !especiales.includes(t.codigo));
+  const special = catalogoTurnos.filter(t => especiales.includes(t.codigo));
+
+  const renderGroup = (items, titulo) => {
+    if (!items.length) return '';
+    return `<div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">${titulo}</div>
+      <table>
+        <thead><tr>
+          <th style="width:60px">Código</th>
+          <th>Entrada</th><th>Salida</th>
+          <th>Horas lab.</th><th>Almuerzo</th><th>Descripción</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${items.map(t => `<tr>
+            <td><span class="badge badge-gray" style="font-family:monospace;font-size:11px">${t.codigo}</span></td>
+            <td style="font-weight:500">${t.entrada}</td>
+            <td style="font-weight:500">${t.salida}</td>
+            <td>${t.horas > 0 ? t.horas + 'h' : '—'}</td>
+            <td>${t.almuerzo ? '<span class="badge badge-teal">+1h alm.</span>' : '<span class="badge badge-gray">S/A</span>'}</td>
+            <td style="color:#666">${t.desc || ''}</td>
+            <td>${especiales.includes(t.codigo) ? '' : `<button class="danger" onclick="deleteTurno('${t.codigo}')">Eliminar</button>`}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  };
+
+  list.innerHTML = renderGroup(laborales, 'Turnos laborales') + renderGroup(special, 'Códigos especiales');
+}
   try { const s = localStorage.getItem(EMPLEADOS_KEY); return s ? JSON.parse(s) : null; } catch(e){ return null; }
 }
 function saveEmpleados(emp) {
@@ -345,9 +476,10 @@ function showPanel(name) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('visible'));
   document.getElementById('panel-' + name).classList.add('visible');
   document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
-  const labels = {dashboard:0, empleados:1, generar:2, historial:3, publicar:4};
+  const labels = {dashboard:0, empleados:1, turnos:2, generar:3, historial:4, publicar:5};
   document.querySelectorAll('.nav button')[labels[name]].classList.add('active');
   if (name === 'empleados') renderEmpleados();
+  if (name === 'turnos') renderTurnos();
   if (name === 'historial') renderHistorial();
 }
 
@@ -520,13 +652,18 @@ function renderMallaReview(data, fi, ff) {
   const diaLabel = {'lunes':'Lun','martes':'Mar','miercoles':'Mié','jueves':'Jue','viernes':'Vie','sabado':'Sáb','domingo':'Dom'};
 
   let html = '';
-
   if (data.advertencias && data.advertencias.length) {
     html += `<div class="warn-box"><b style="font-weight:500">Advertencias:</b><br>${data.advertencias.join('<br>')}</div>`;
   }
   if (data.resumen) {
     html += `<div class="ok-box">${data.resumen}</div>`;
   }
+  html += `<div class="info-box" style="margin-bottom:10px">Haz clic en cualquier celda de turno para cambiarlo. Los cambios se aplican a la malla antes de aprobar.</div>`;
+
+  // Build options for the inline select
+  const opcionesSelect = catalogoTurnos.map(t =>
+    `<option value="${t.codigo}">${t.codigo} · ${t.entrada === '-' ? t.desc : t.entrada+'-'+t.salida+' ('+t.horas+'h'+(t.almuerzo?' +alm':'')+')'}</option>`
+  ).join('');
 
   html += `<div class="malla-table-wrap"><table class="malla-table">
     <thead><tr>
@@ -539,26 +676,56 @@ function renderMallaReview(data, fi, ff) {
   for (const [nombre, turnos] of Object.entries(data.turnos || {})) {
     const emp = empleados.find(e => e.nombre.toLowerCase().includes(nombre.toLowerCase().split(' ')[0])) || {};
     let totalH = 0;
+    dias.forEach(d => { totalH += (turnos[d] ? (turnos[d].horas || 0) : 0); });
+
     html += `<tr><td class="name-cell">${nombre}</td><td class="role-cell">${emp.cargo || ''}</td>`;
     dias.forEach(dia => {
-      const t = turnos[dia] || {codigo:'?', entrada:'-', salida:'-', horas:0};
-      totalH += (t.horas || 0);
-      let cellClass = '';
-      if (t.codigo === 'D') cellClass = 'shift-D';
-      else if (t.codigo === 'V') cellClass = 'shift-V';
-      else if (t.codigo === 'F') cellClass = 'shift-F';
-      else if (t.codigo === 'C') cellClass = 'shift-C';
-      else if (t.codigo === 'INVENT') cellClass = 'shift-INVENT';
-      else cellClass = 'shift-work';
+      const t = turnos[dia] || {codigo:'D', entrada:'-', salida:'-', horas:0, almuerzo:false};
+      const cod = t.codigo || 'D';
+      let cellClass = 'shift-work';
+      if (cod === 'D') cellClass = 'shift-D';
+      else if (cod === 'V') cellClass = 'shift-V';
+      else if (cod === 'F') cellClass = 'shift-F';
+      else if (cod === 'C') cellClass = 'shift-C';
+      else if (cod === 'INVENT') cellClass = 'shift-INVENT';
       const dayClass = dia==='sabado'?'day-sat':dia==='domingo'?'day-sun':'';
-      const label = t.codigo === 'D' ? 'D' : (t.entrada !== '-' ? t.entrada : t.codigo);
-      html += `<td class="${dayClass}"><span class="shift-cell ${cellClass}" title="${t.entrada} – ${t.salida}${t.almuerzo?' +1h alm':''}">${label}</span></td>`;
+
+      // Label: show entrada-salida + almuerzo indicator for work shifts
+      let labelLines = '';
+      if (['D','V','F','C'].includes(cod)) {
+        labelLines = cod;
+      } else if (cod === 'INVENT') {
+        labelLines = 'INV<br>6am';
+      } else {
+        labelLines = `${t.entrada}<br>${t.salida}${t.almuerzo ? '<br><span style="font-size:9px;opacity:0.8">+alm</span>' : ''}`;
+      }
+
+      const empKey = nombre.replace(/'/g,"\\'");
+      html += `<td class="${dayClass}" style="cursor:pointer" onclick="abrirEditorTurno(this,'${empKey}','${dia}','${cod}')" title="Clic para editar">
+        <span class="shift-cell ${cellClass}">${labelLines}</span>
+      </td>`;
     });
-    const horasClass = totalH > 44 ? 'warn-hours' : 'hours-ok';
-    html += `<td class="hours-col ${totalH > 44 ? 'warn-hours' : ''}">${totalH}h</td></tr>`;
+    const warnH = totalH > 44;
+    html += `<td class="hours-col ${warnH?'warn-hours':''}" id="total-${nombre.replace(/\s/g,'_')}">${totalH}h</td></tr>`;
   }
 
   html += `</tbody></table></div>`;
+
+  // Inline editor popup (hidden by default)
+  html += `<div id="turno-editor" style="display:none;background:#fff;border:0.5px solid #ccc;border-radius:10px;padding:14px;margin:10px 0;max-width:400px">
+    <div style="font-size:13px;font-weight:500;margin-bottom:10px" id="editor-title">Editar turno</div>
+    <div class="form-row cols2">
+      <div><label>Nuevo turno</label>
+        <select id="editor-select">${opcionesSelect}</select>
+      </div>
+      <div style="display:flex;flex-direction:column;justify-content:flex-end;gap:6px">
+        <button class="primary" onclick="aplicarEdicionTurno()">Aplicar</button>
+        <button class="secondary" onclick="cerrarEditorTurno()">Cancelar</button>
+      </div>
+    </div>
+    <div id="editor-preview" style="font-size:11px;color:#555;margin-top:4px"></div>
+  </div>`;
+
   html += `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
     <button class="primary" onclick="aprobarMalla('${fi}','${ff}')">Aprobar y publicar en Sheets</button>
     <button class="secondary" onclick="switchTab('generar-ia')">← Regenerar</button>
@@ -567,7 +734,75 @@ function renderMallaReview(data, fi, ff) {
   </div>`;
 
   document.getElementById('revisar-content').innerHTML = html;
+
+  // Wire up select preview
+  const sel = document.getElementById('editor-select');
+  if (sel) sel.addEventListener('change', actualizarPreviewEditor);
+
   switchTab('revisar');
+}
+
+let editorCtx = null; // {cell, nombre, dia, codigoAnterior}
+
+function abrirEditorTurno(cell, nombre, dia, codigoActual) {
+  editorCtx = {cell, nombre, dia};
+  const editor = document.getElementById('turno-editor');
+  const title = document.getElementById('editor-title');
+  const sel = document.getElementById('editor-select');
+  title.textContent = `Editar turno de ${nombre} — ${dia}`;
+  sel.value = codigoActual;
+  actualizarPreviewEditor();
+  // Insert editor right after the table
+  const wrap = document.querySelector('.malla-table-wrap');
+  wrap.parentNode.insertBefore(editor, wrap.nextSibling);
+  editor.style.display = 'block';
+  editor.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function actualizarPreviewEditor() {
+  const sel = document.getElementById('editor-select');
+  const prev = document.getElementById('editor-preview');
+  if (!sel || !prev) return;
+  const t = getTurno(sel.value);
+  if (t.entrada !== '-') {
+    prev.textContent = `→ Entrada: ${t.entrada} · Salida: ${t.salida} · ${t.horas}h laborales · ${t.almuerzo ? '+1h almuerzo' : 'S/A (sin almuerzo)'}`;
+  } else {
+    prev.textContent = `→ ${t.desc}`;
+  }
+}
+
+function aplicarEdicionTurno() {
+  if (!editorCtx || !currentMallaData) return;
+  const {nombre, dia} = editorCtx;
+  const sel = document.getElementById('editor-select');
+  const nuevoCodigo = sel.value;
+  const nuevoTurno = getTurno(nuevoCodigo);
+
+  // Update in currentMallaData
+  if (!currentMallaData.turnos[nombre]) return;
+  currentMallaData.turnos[nombre][dia] = {
+    codigo: nuevoCodigo,
+    entrada: nuevoTurno.entrada,
+    salida: nuevoTurno.salida,
+    horas: nuevoTurno.horas,
+    almuerzo: nuevoTurno.almuerzo
+  };
+
+  // Recalculate total for this employee
+  const dias = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
+  const total = dias.reduce((s, d) => s + (currentMallaData.turnos[nombre][d]?.horas || 0), 0);
+  currentMallaData.turnos[nombre].total_horas = total;
+
+  // Re-render the review
+  const fi = document.getElementById('fecha-inicio').value;
+  const ff = document.getElementById('fecha-fin').value;
+  renderMallaReview(currentMallaData, fi, ff);
+}
+
+function cerrarEditorTurno() {
+  const editor = document.getElementById('turno-editor');
+  if (editor) editor.style.display = 'none';
+  editorCtx = null;
 }
 
 async function aprobarMalla(fi, ff) {
