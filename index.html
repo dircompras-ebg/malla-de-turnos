@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Malla de Turnos — Dpto. Abastecimiento</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f4f0;color:#1a1a1a;font-size:14px}
+.app{max-width:1100px;margin:0 auto;padding:20px}
+header{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+h1{font-size:17px;font-weight:500}
+.subtitle{font-size:12px;color:#666;margin-top:2px}
+.nav{display:flex;gap:6px}
+.nav button{background:none;border:0.5px solid #ccc;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer;color:#444}
+.nav button.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.panel{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:20px;margin-bottom:16px;display:none}
+.panel.visible{display:block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.metric{background:#f5f4f0;border-radius:8px;padding:12px 14px}
+.metric-label{font-size:11px;color:#888;margin-bottom:4px}
+.metric-val{font-size:22px;font-weight:500}
+.metric-sub{font-size:11px;color:#888;margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#f5f4f0;padding:7px 8px;text-align:left;font-weight:500;border-bottom:0.5px solid #ddd;white-space:nowrap}
+td{padding:7px 8px;border-bottom:0.5px solid #eee;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500}
+.badge-blue{background:#E6F1FB;color:#185FA5}
+.badge-teal{background:#E1F5EE;color:#0F6E56}
+.badge-amber{background:#FAEEDA;color:#854F0B}
+.badge-red{background:#FCEBEB;color:#A32D2D}
+.badge-gray{background:#F1EFE8;color:#5F5E5A}
+.badge-purple{background:#EEEDFE;color:#3C3489}
+btn{display:inline-block}
+button.primary{background:#1a1a1a;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:inherit}
+button.primary:hover{background:#333}
+button.secondary{background:none;color:#444;border:0.5px solid #ccc;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:inherit}
+button.secondary:hover{background:#f5f4f0}
+button.danger{background:none;color:#A32D2D;border:0.5px solid #f09595;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit}
+input,select{border:0.5px solid #ccc;border-radius:8px;padding:7px 10px;font-size:13px;font-family:inherit;width:100%;background:#fff;color:#1a1a1a}
+input:focus,select:focus{outline:none;border-color:#888}
+label{font-size:12px;color:#555;display:block;margin-bottom:4px}
+.form-row{display:grid;gap:10px;margin-bottom:12px}
+.form-row.cols2{grid-template-columns:1fr 1fr}
+.form-row.cols3{grid-template-columns:1fr 1fr 1fr}
+.section-title{font-size:13px;font-weight:500;margin-bottom:12px;padding-bottom:8px;border-bottom:0.5px solid #eee}
+.info-box{background:#E6F1FB;border-radius:8px;padding:12px 14px;font-size:12px;color:#0C447C;line-height:1.6;margin-bottom:14px}
+.warn-box{background:#FAEEDA;border-radius:8px;padding:12px 14px;font-size:12px;color:#633806;line-height:1.6;margin-bottom:14px}
+.ok-box{background:#E1F5EE;border-radius:8px;padding:12px 14px;font-size:12px;color:#085041;line-height:1.6;margin-bottom:14px}
+.err-box{background:#FCEBEB;border-radius:8px;padding:12px 14px;font-size:12px;color:#791F1F;line-height:1.6;margin-bottom:14px}
+.shift-cell{display:inline-block;min-width:54px;padding:3px 7px;border-radius:6px;text-align:center;font-size:11px;font-weight:500}
+.shift-D{background:#F1EFE8;color:#5F5E5A}
+.shift-work{background:#E1F5EE;color:#085041}
+.shift-V{background:#E6F1FB;color:#185FA5}
+.shift-C{background:#EEEDFE;color:#3C3489}
+.shift-F{background:#FAEEDA;color:#854F0B}
+.shift-INVENT{background:#FCEBEB;color:#A32D2D}
+.hours-ok{color:#0F6E56;font-weight:500}
+.hours-warn{color:#A32D2D;font-weight:500}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid #ccc;border-top-color:#1a1a1a;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai-output{background:#f5f4f0;border-radius:8px;padding:14px;font-size:12px;line-height:1.8;white-space:pre-wrap;min-height:60px;max-height:300px;overflow-y:auto;margin-bottom:12px;color:#1a1a1a}
+.week-selector{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.malla-table-wrap{overflow-x:auto;margin-bottom:14px}
+.malla-table{border-collapse:collapse;font-size:11px;min-width:700px}
+.malla-table th{background:#1a1a1a;color:#fff;padding:6px 8px;font-weight:500;white-space:nowrap;text-align:center}
+.malla-table th.name-col{text-align:left;min-width:160px}
+.malla-table td{padding:5px 6px;border:0.5px solid #eee;text-align:center}
+.malla-table td.name-cell{text-align:left;font-weight:500;background:#f9f9f8;white-space:nowrap;padding-left:10px}
+.malla-table td.role-cell{font-size:10px;color:#888;background:#f9f9f8;white-space:nowrap}
+.day-sat{background:#fafaf8}
+.day-sun{background:#f5f4f0}
+.hours-col{background:#f0f8f4;font-weight:500;color:#0F6E56;min-width:36px}
+.warn-hours{background:#FCEBEB !important;color:#A32D2D}
+.tab-bar{display:flex;gap:0;border-bottom:0.5px solid #ddd;margin-bottom:16px}
+.tab{padding:8px 16px;font-size:13px;cursor:pointer;color:#666;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:500}
+.history-item{border:0.5px solid #ddd;border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.history-week{font-size:13px;font-weight:500}
+.history-meta{font-size:11px;color:#888;margin-top:2px}
+.emp-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid #eee}
+.emp-row:last-child{border-bottom:none}
+.emp-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.emp-name{font-size:13px;font-weight:500}
+.emp-role{font-size:11px;color:#888}
+.emp-status-active{color:#0F6E56}
+.emp-status-vacant{color:#A32D2D}
+.tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;border:0.5px solid #ddd;color:#666;margin-right:4px}
+.copy-btn{background:#f5f4f0;border:0.5px solid #ddd;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;color:#444;font-family:inherit}
+.copy-btn:hover{background:#eee}
+.steps{counter-reset:step}
+.step{display:flex;gap:12px;margin-bottom:16px;align-items:flex-start}
+.step-num{width:24px;height:24px;border-radius:50%;background:#1a1a1a;color:#fff;font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-content{flex:1}
+.step-title{font-size:13px;font-weight:500;margin-bottom:3px}
+.step-desc{font-size:12px;color:#555;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div>
+    <div style="font-size:11px;color:#888;margin-bottom:2px">Dpto. de Abastecimiento · El Buen Gusto</div>
+    <h1>Gestión de Malla de Turnos</h1>
+  </div>
+  <div class="nav">
+    <button class="active" onclick="showPanel('dashboard')">Inicio</button>
+    <button onclick="showPanel('empleados')">Empleados</button>
+    <button onclick="showPanel('generar')">Generar malla</button>
+    <button onclick="showPanel('historial')">Historial</button>
+    <button onclick="showPanel('publicar')">Publicar</button>
+  </div>
+</header>
+
+<div id="panel-dashboard" class="panel visible">
+  <div class="section-title">Resumen del equipo</div>
+  <div class="grid3" style="margin-bottom:20px">
+    <div class="metric"><div class="metric-label">Empleados activos</div><div class="metric-val" id="m-activos">8</div><div class="metric-sub">+ 1 vacante (Analista de compras)</div></div>
+    <div class="metric"><div class="metric-label">Semana actual</div><div class="metric-val" id="m-semana">26 May – 1 Jun</div><div class="metric-sub">2026</div></div>
+    <div class="metric"><div class="metric-label">Último inventario</div><div class="metric-val">31 May</div><div class="metric-sub">Fin de mes — horario especial</div></div>
+  </div>
+  <div class="section-title">Reglas activas del equipo</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
+    <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Oscar Sosa (Conductor)</b><br>Jornada tarde · 10 am – 7 pm aprox.</div>
+    <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Manuel Corro ↔ Yesid Moreno</b><br>Rotación semanal 8am-5pm / 9am-6pm</div>
+    <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Iván Nieto ↔ Fabián Cárdenas</b><br>Rotación mar/jue · 7 am semana x semana</div>
+    <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Cristian Medina</b><br>Horario permanente fijo</div>
+    <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Máximo semanal</b><br>44 h laborales (sin contar almuerzo)</div>
+    <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Almuerzo mar–vie</b><br>1 hora de almuerzo (no contabilizada)</div>
+  </div>
+  <div class="section-title">Acciones rápidas</div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button class="primary" onclick="showPanel('generar')">Generar malla próxima semana</button>
+    <button class="secondary" onclick="showPanel('empleados')">Ver / editar empleados</button>
+    <button class="secondary" onclick="showPanel('historial')">Ver historial de mallas</button>
+  </div>
+</div>
+
+<div id="panel-empleados" class="panel">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div class="section-title" style="margin:0;border:none;padding:0">Equipo actual</div>
+    <button class="primary" onclick="toggleAddEmp()">+ Agregar empleado</button>
+  </div>
+  <div id="add-emp-form" style="display:none;background:#f9f9f8;border-radius:10px;padding:16px;margin-bottom:14px;border:0.5px solid #ddd">
+    <div class="section-title">Nuevo empleado</div>
+    <div class="form-row cols2">
+      <div><label>Nombre completo</label><input id="new-nombre" placeholder="Ej: Carlos Pérez"></div>
+      <div><label>Cargo / Rol</label><input id="new-cargo" placeholder="Ej: Auxiliar logístico"></div>
+    </div>
+    <div class="form-row cols3">
+      <div><label>Horario base (entrada)</label><select id="new-entrada">
+        <option>6:00 am</option><option>7:00 am</option><option selected>8:00 am</option><option>9:00 am</option><option>10:00 am</option>
+      </select></div>
+      <div><label>Horario base (salida)</label><select id="new-salida">
+        <option>2:00 pm</option><option>3:00 pm</option><option>4:00 pm</option><option selected>5:00 pm</option><option>6:00 pm</option><option>7:00 pm</option>
+      </select></div>
+      <div><label>Estado</label><select id="new-estado"><option>Activo</option><option>Vacante</option><option>Incapacidad</option></select></div>
+    </div>
+    <div class="form-row">
+      <div><label>Regla especial (opcional)</label><input id="new-regla" placeholder="Ej: Rotación semanal con X · martes/jueves 7am · horario fijo · etc."></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="primary" onclick="addEmpleado()">Guardar empleado</button>
+      <button class="secondary" onclick="toggleAddEmp()">Cancelar</button>
+    </div>
+  </div>
+  <div id="emp-list"></div>
+</div>
+
+<div id="panel-generar" class="panel">
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('config')">1 · Configurar</button>
+    <button class="tab" onclick="switchTab('generar-ia')">2 · Generar con IA</button>
+    <button class="tab" onclick="switchTab('revisar')">3 · Revisar y aprobar</button>
+  </div>
+
+  <div id="tab-config">
+    <div class="section-title">Semana a planificar</div>
+    <div class="form-row cols2" style="max-width:500px">
+      <div><label>Fecha inicio (lunes)</label><input type="date" id="fecha-inicio"></div>
+      <div><label>Fecha fin (domingo)</label><input type="date" id="fecha-fin"></div>
+    </div>
+    <div class="form-row" style="max-width:500px">
+      <div><label>¿Es semana de inventario? (último día del mes)</label>
+        <select id="es-inventario"><option value="no">No</option><option value="si">Sí — todos entran a las 6 am el último día</option></select>
+      </div>
+    </div>
+    <div class="form-row" style="max-width:500px">
+      <div><label>Notas especiales para esta semana (vacaciones, incapacidades, eventos)</label>
+        <input id="notas-semana" placeholder="Ej: Yesid en vacaciones lun-mié · Cristian incapacitado jueves"></div>
+    </div>
+    <div class="section-title" style="margin-top:16px">Turno de rotación esta semana</div>
+    <div class="form-row cols2" style="max-width:500px">
+      <div><label>Manuel Corro y Yesid Moreno</label>
+        <select id="rot-manuel-yesid">
+          <option value="A">Semana A — Manuel 8am-5pm · Yesid 9am-6pm</option>
+          <option value="B">Semana B — Manuel 9am-6pm · Yesid 8am-5pm</option>
+        </select>
+      </div>
+      <div><label>Iván Nieto y Fabián Cárdenas (mar/jue 7am)</label>
+        <select id="rot-ivan-fabian">
+          <option value="A">Semana A — Iván entra 7am mar/jue</option>
+          <option value="B">Semana B — Fabián entra 7am mar/jue</option>
+        </select>
+      </div>
+    </div>
+    <button class="primary" style="margin-top:8px" onclick="goToGenerar()">Continuar → Generar con IA</button>
+  </div>
+
+  <div id="tab-generar-ia" style="display:none">
+    <div class="info-box" id="config-resumen"></div>
+    <button class="primary" onclick="generarMalla()" id="btn-generar">Generar malla con IA</button>
+    <div id="gen-status" style="margin-top:14px"></div>
+    <div id="gen-output" style="display:none;margin-top:14px">
+      <div class="section-title">Respuesta de la IA</div>
+      <div class="ai-output" id="ai-raw"></div>
+      <button class="secondary" onclick="switchTab('revisar')">Ver malla visual →</button>
+    </div>
+  </div>
+
+  <div id="tab-revisar" style="display:none">
+    <div id="revisar-content">
+      <div class="warn-box">Primero genera la malla en el paso anterior.</div>
+    </div>
+  </div>
+</div>
+
+<div id="panel-historial" class="panel">
+  <div class="section-title">Mallas publicadas</div>
+  <div id="historial-list">
+    <div style="color:#888;font-size:13px;padding:20px 0">Aún no hay mallas aprobadas. Genera y aprueba tu primera malla para verla aquí.</div>
+  </div>
+</div>
+
+<div id="panel-publicar" class="panel">
+  <div class="section-title">Estado de la conexión con Google Sheets</div>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;background:#f5f4f0;border-radius:10px;padding:14px 16px;flex-wrap:wrap">
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:500;margin-bottom:2px">Google Sheets conectado</div>
+      <div style="font-size:12px;color:#888">Malla de Turnos — Abastecimiento 2026 · dircompras@elbuengusto.com.co</div>
+    </div>
+    <button id="btn-test" class="secondary" onclick="probarConexion()" style="white-space:nowrap">Probar conexión</button>
+    <a href="https://docs.google.com/spreadsheets/d/16LkvSU6xDM6yvaTgbmUaOcSsGrAppBAL0RHpSMcsj7w/edit" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:13px;color:#185FA5;border:0.5px solid #B5D4F4;border-radius:8px;text-decoration:none;background:#E6F1FB;white-space:nowrap">Abrir Sheets →</a>
+    <div id="conexion-status" style="width:100%;font-size:12px;margin-top:4px"></div>
+  </div>
+
+  <div class="section-title">Flujo semanal — cómo funciona</div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">Cada viernes o sábado</div><div class="step-desc">Abre esta app, ve a "Generar malla", configura la semana siguiente con las fechas, rotaciones y notas especiales (vacaciones, incapacidades).</div></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Generar con IA</div><div class="step-desc">Haz clic en "Generar malla con IA". En segundos te muestra la malla completa respetando las 44h, rotaciones y todas las reglas del equipo.</div></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">Revisar y aprobar</div><div class="step-desc">Revisa la tabla visual. Si algo no está bien, pídele corrección a la IA o regresa a ajustar las notas. Si todo está bien, clic en "Aprobar y publicar en Sheets".</div></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">Publicación automática</div><div class="step-desc">La app envía la malla al Google Sheets automáticamente — se crea una hoja nueva con el nombre de la semana, con colores, cargos y totales de horas. Sin copiar ni pegar nada.</div></div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-title">Compartir con el equipo</div><div class="step-desc">El link de tu Sheets es siempre el mismo. Compártelo en el grupo de WhatsApp como mensaje fijado. Cada semana la nueva pestaña aparece automáticamente y cualquier empleado la ve desde el celular sin necesitar cuenta de Google.</div></div></div>
+  </div>
+
+  <div class="section-title" style="margin-top:4px">Link permanente para compartir con el equipo</div>
+  <div style="background:#f5f4f0;border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+    <div style="flex:1;font-size:12px;color:#555;font-family:monospace;word-break:break-all">https://docs.google.com/spreadsheets/d/16LkvSU6xDM6yvaTgbmUaOcSsGrAppBAL0RHpSMcsj7w/edit</div>
+    <button class="copy-btn" onclick="navigator.clipboard.writeText('https://docs.google.com/spreadsheets/d/16LkvSU6xDM6yvaTgbmUaOcSsGrAppBAL0RHpSMcsj7w/edit').then(()=>alert('Link copiado'))">Copiar link</button>
+  </div>
+  <div class="info-box">Para que los empleados no necesiten cuenta de Google, ve al Sheets → <b>Archivo → Compartir → Publicar en la web</b> → selecciona "Toda la hoja de cálculo" → Publicar. Ese link secundario funciona sin login desde cualquier celular.</div>
+</div>
+
+</div>
+
+<script>
+const EMPLEADOS_KEY = 'malla_empleados_v2';
+const HISTORIAL_KEY = 'malla_historial_v1';
+const ROT_KEY = 'malla_rotacion_v1';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX9LaIAcbNFhMLWdxZDDY7dY80j8aAupf8DpRVqoK2E6OkIXo6-l2ujbC7uXpqUWg5/exec';
+const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/16LkvSU6xDM6yvaTgbmUaOcSsGrAppBAL0RHpSMcsj7w/edit';
+
+const TURNOS = {
+  '13': {label:'8am-5pm', horas:8, almuerzo:true},
+  '14': {label:'7am-3pm', horas:8, almuerzo:false},
+  '15': {label:'8am-4pm', horas:7, almuerzo:true},
+  '16': {label:'8am-2pm', horas:6, almuerzo:false},
+  '17': {label:'7am-1pm', horas:6, almuerzo:false},
+  '26': {label:'4am-12pm', horas:8, almuerzo:false},
+  '28': {label:'6am-3pm', horas:8, almuerzo:true},
+  '41': {label:'8am-12pm', horas:4, almuerzo:false},
+  '42': {label:'6am-2pm', horas:8, almuerzo:false},
+  '45': {label:'8am-6pm', horas:9, almuerzo:true},
+  '46': {label:'7am-5pm', horas:9, almuerzo:true},
+  '52': {label:'7am-4pm', horas:8, almuerzo:true},
+  '54': {label:'7am-12pm', horas:5, almuerzo:false},
+  '56': {label:'8am-3pm', horas:6, almuerzo:true},
+  '57': {label:'6am-4pm', horas:9, almuerzo:true},
+  '58': {label:'12pm-6pm', horas:6, almuerzo:false},
+  '60': {label:'9am-6pm', horas:8, almuerzo:true},
+  'D':  {label:'Descanso', horas:0, almuerzo:false},
+  'V':  {label:'Vacaciones', horas:0, almuerzo:false},
+  'F':  {label:'Día familia', horas:0, almuerzo:false},
+  'C':  {label:'Compensatorio', horas:0, almuerzo:false},
+  'INVENT':{label:'Inventario 6am', horas:8, almuerzo:false},
+};
+
+const EMPLEADOS_DEFAULT = [
+  {id:1, nombre:'Álvaro Ramos', cargo:'Coordinador / Supervisor', entrada:'7:00 am', salida:'4:00 pm', estado:'Activo', regla:'Horario estándar', color:'#B5D4F4'},
+  {id:2, nombre:'Iván Nieto', cargo:'Auxiliar logístico', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Rotación mar/jue 7am con Fabián · semana por semana', color:'#9FE1CB'},
+  {id:3, nombre:'Fabián Cárdenas', cargo:'Auxiliar logístico', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Rotación mar/jue 7am con Iván · semana por semana', color:'#9FE1CB'},
+  {id:4, nombre:'Yesid Moreno', cargo:'Auxiliar logístico', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Rotación semanal 8am-5pm / 9am-6pm con Manuel', color:'#FAC775'},
+  {id:5, nombre:'Segundo José Briceño', cargo:'Auxiliar logístico', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Horario estándar', color:'#CCC'},
+  {id:6, nombre:'Cristian Medina', cargo:'Auxiliar logístico', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Horario permanente fijo · no rota', color:'#AFA9EC'},
+  {id:7, nombre:'Manuel Corro', cargo:'Auxiliar logístico', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Rotación semanal 8am-5pm / 9am-6pm con Yesid', color:'#FAC775'},
+  {id:8, nombre:'Oscar Sosa', cargo:'Conductor', entrada:'10:00 am', salida:'7:00 pm', estado:'Activo', regla:'Jornada tarde permanente · 10am-7pm aprox.', color:'#F5C4B3'},
+  {id:9, nombre:'Vacante — Analista de compras', cargo:'Analista de compras', entrada:'-', salida:'-', estado:'Vacante', regla:'Reemplaza a Yulieth Andrea Brieño', color:'#F09595'},
+];
+
+function loadEmpleados() {
+  try { const s = localStorage.getItem(EMPLEADOS_KEY); return s ? JSON.parse(s) : null; } catch(e){ return null; }
+}
+function saveEmpleados(emp) {
+  try { localStorage.setItem(EMPLEADOS_KEY, JSON.stringify(emp)); } catch(e){}
+}
+function loadHistorial() {
+  try { const s = localStorage.getItem(HISTORIAL_KEY); return s ? JSON.parse(s) : []; } catch(e){ return []; }
+}
+function saveHistorial(h) {
+  try { localStorage.setItem(HISTORIAL_KEY, JSON.stringify(h)); } catch(e){}
+}
+
+let empleados = loadEmpleados() || JSON.parse(JSON.stringify(EMPLEADOS_DEFAULT));
+let historial = loadHistorial();
+let currentMallaData = null;
+let currentMallaRaw = null;
+
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('visible'));
+  document.getElementById('panel-' + name).classList.add('visible');
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  const labels = {dashboard:0, empleados:1, generar:2, historial:3, publicar:4};
+  document.querySelectorAll('.nav button')[labels[name]].classList.add('active');
+  if (name === 'empleados') renderEmpleados();
+  if (name === 'historial') renderHistorial();
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#panel-generar [id^="tab-"]').forEach(t => t.style.display = 'none');
+  document.getElementById('tab-' + name).style.display = 'block';
+  const tabs = ['config','generar-ia','revisar'];
+  document.querySelectorAll('.tab')[tabs.indexOf(name)].classList.add('active');
+}
+
+function toggleAddEmp() {
+  const f = document.getElementById('add-emp-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+function addEmpleado() {
+  const nombre = document.getElementById('new-nombre').value.trim();
+  const cargo = document.getElementById('new-cargo').value.trim();
+  if (!nombre || !cargo) { alert('Ingresa nombre y cargo'); return; }
+  const nuevo = {
+    id: Date.now(), nombre, cargo,
+    entrada: document.getElementById('new-entrada').value,
+    salida: document.getElementById('new-salida').value,
+    estado: document.getElementById('new-estado').value,
+    regla: document.getElementById('new-regla').value.trim() || 'Horario estándar',
+    color: '#D3D1C7'
+  };
+  empleados.push(nuevo);
+  saveEmpleados(empleados);
+  renderEmpleados();
+  document.getElementById('add-emp-form').style.display = 'none';
+  document.getElementById('new-nombre').value = '';
+  document.getElementById('new-cargo').value = '';
+  document.getElementById('new-regla').value = '';
+  document.getElementById('m-activos').textContent = empleados.filter(e=>e.estado==='Activo').length;
+}
+
+function removeEmpleado(id) {
+  if (!confirm('¿Eliminar este empleado?')) return;
+  empleados = empleados.filter(e => e.id !== id);
+  saveEmpleados(empleados);
+  renderEmpleados();
+}
+
+function renderEmpleados() {
+  const list = document.getElementById('emp-list');
+  list.innerHTML = '';
+  const initials = n => n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  empleados.forEach(emp => {
+    const row = document.createElement('div');
+    row.className = 'emp-row';
+    row.innerHTML = `
+      <div class="emp-avatar" style="background:${emp.color}20;color:${emp.color === '#CCC' ? '#888' : '#444'}">${initials(emp.nombre)}</div>
+      <div style="flex:1">
+        <div class="emp-name">${emp.nombre}</div>
+        <div class="emp-role">${emp.cargo} · ${emp.estado === 'Vacante' ? '<span style="color:#A32D2D">Vacante</span>' : emp.entrada + ' – ' + emp.salida}</div>
+        ${emp.regla && emp.regla !== 'Horario estándar' ? `<div style="font-size:10px;color:#888;margin-top:2px">${emp.regla}</div>` : ''}
+      </div>
+      <span class="badge ${emp.estado === 'Activo' ? 'badge-teal' : emp.estado === 'Vacante' ? 'badge-red' : 'badge-amber'}">${emp.estado}</span>
+      <button class="danger" onclick="removeEmpleado(${emp.id})">Eliminar</button>
+    `;
+    list.appendChild(row);
+  });
+  document.getElementById('m-activos').textContent = empleados.filter(e=>e.estado==='Activo').length;
+}
+
+function goToGenerar() {
+  const fi = document.getElementById('fecha-inicio').value;
+  const ff = document.getElementById('fecha-fin').value;
+  if (!fi || !ff) { alert('Selecciona las fechas de la semana'); return; }
+  const rotMY = document.getElementById('rot-manuel-yesid').value;
+  const rotIF = document.getElementById('rot-ivan-fabian').value;
+  const inventario = document.getElementById('es-inventario').value;
+  const notas = document.getElementById('notas-semana').value;
+  const resumen = document.getElementById('config-resumen');
+  resumen.innerHTML = `<b style="font-weight:500">Semana configurada:</b> ${fi} al ${ff}<br>
+    Rotación Manuel/Yesid: <b>${rotMY === 'A' ? 'Manuel 8am-5pm · Yesid 9am-6pm' : 'Manuel 9am-6pm · Yesid 8am-5pm'}</b><br>
+    Rotación Iván/Fabián: <b>${rotIF === 'A' ? 'Iván entra 7am mar/jue' : 'Fabián entra 7am mar/jue'}</b><br>
+    Inventario fin de mes: <b>${inventario === 'si' ? 'Sí — todos entran 6am el último día' : 'No'}</b>
+    ${notas ? '<br>Notas: ' + notas : ''}`;
+  switchTab('generar-ia');
+}
+
+async function generarMalla() {
+  const fi = document.getElementById('fecha-inicio').value;
+  const ff = document.getElementById('fecha-fin').value;
+  const rotMY = document.getElementById('rot-manuel-yesid').value;
+  const rotIF = document.getElementById('rot-ivan-fabian').value;
+  const inventario = document.getElementById('es-inventario').value;
+  const notas = document.getElementById('notas-semana').value;
+
+  const empActivos = empleados.filter(e => e.estado !== 'Vacante');
+
+  const prompt = `Eres el sistema de gestión de malla de turnos del Departamento de Abastecimiento de El Buen Gusto. Debes generar la malla de turnos para la semana del ${fi} al ${ff}.
+
+EMPLEADOS ACTIVOS:
+${empActivos.map(e => `- ${e.nombre} (${e.cargo}) · Horario base ${e.entrada}-${e.salida} · Regla: ${e.regla}`).join('\n')}
+
+REGLAS OBLIGATORIAS:
+1. Ningún trabajador puede superar 44 horas laborales a la semana (la hora de almuerzo NO se cuenta)
+2. Oscar Sosa trabaja en jornada de tarde, entrada aproximada 10am-11am, salida 6pm-7pm
+3. Esta semana rotación Manuel/Yesid: ${rotMY === 'A' ? 'Manuel entra 8am-sale 5pm · Yesid entra 9am-sale 6pm' : 'Manuel entra 9am-sale 6pm · Yesid entra 8am-sale 5pm'}
+4. Esta semana rotación Iván/Fabián los martes y jueves: ${rotIF === 'A' ? 'Iván entra a las 7am los martes y jueves' : 'Fabián entra a las 7am los martes y jueves'}
+5. Cristian Medina tiene horario fijo: lun-vie 8am-5pm, sábado 8am-12pm
+6. De martes a viernes tienen 1 hora de almuerzo (no se cuenta en las 44h)
+7. Los lunes y sábados NO hay hora de almuerzo
+8. El domingo es descanso para todos
+${inventario === 'si' ? '9. INVENTARIO: el último día de la semana todos entran a las 6am (horario especial de inventario)' : ''}
+${notas ? `NOTAS ESPECIALES: ${notas}` : ''}
+
+FORMATO DE RESPUESTA — responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown, sin explicaciones. El formato exacto es:
+{
+  "semana": "26 May - 1 Jun 2026",
+  "turnos": {
+    "NOMBRE EMPLEADO": {
+      "lunes": {"codigo": "13", "entrada": "8am", "salida": "5pm", "horas": 8, "almuerzo": true},
+      "martes": {"codigo": "13", "entrada": "8am", "salida": "5pm", "horas": 8, "almuerzo": true},
+      "miercoles": {"codigo": "13", "entrada": "8am", "salida": "5pm", "horas": 8, "almuerzo": true},
+      "jueves": {"codigo": "13", "entrada": "8am", "salida": "5pm", "horas": 8, "almuerzo": true},
+      "viernes": {"codigo": "13", "entrada": "8am", "salida": "5pm", "horas": 8, "almuerzo": true},
+      "sabado": {"codigo": "41", "entrada": "8am", "salida": "12pm", "horas": 4, "almuerzo": false},
+      "domingo": {"codigo": "D", "entrada": "-", "salida": "-", "horas": 0, "almuerzo": false},
+      "total_horas": 44
+    }
+  },
+  "advertencias": [],
+  "resumen": "Texto breve explicando las decisiones tomadas"
+}
+Usa "D" para descanso, "V" para vacaciones, "F" para día de familia, "C" para compensatorio. El campo "codigo" puede ser un número de turno o una letra especial.`;
+
+  const btn = document.getElementById('btn-generar');
+  const status = document.getElementById('gen-status');
+  btn.disabled = true;
+  status.innerHTML = '<span class="spinner"></span> La IA está generando la malla…';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{role: 'user', content: prompt}]
+      })
+    });
+    const data = await resp.json();
+    const raw = data.content.map(c => c.text || '').join('');
+    currentMallaRaw = raw;
+    document.getElementById('ai-raw').textContent = raw;
+    document.getElementById('gen-output').style.display = 'block';
+    status.innerHTML = '<span style="color:#0F6E56">✓ Malla generada correctamente</span>';
+
+    try {
+      const clean = raw.replace(/```json|```/g, '').trim();
+      currentMallaData = JSON.parse(clean);
+      renderMallaReview(currentMallaData, fi, ff);
+    } catch(e) {
+      currentMallaData = null;
+      document.getElementById('revisar-content').innerHTML = '<div class="warn-box">La IA respondió pero el formato no es JSON puro. Revisa la respuesta en bruto arriba y pídeme que lo corrija.</div>';
+    }
+  } catch(e) {
+    status.innerHTML = '<span style="color:#A32D2D">Error al conectar con la IA. Verifica tu conexión.</span>';
+  }
+  btn.disabled = false;
+}
+
+function renderMallaReview(data, fi, ff) {
+  const dias = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
+  const diaLabel = {'lunes':'Lun','martes':'Mar','miercoles':'Mié','jueves':'Jue','viernes':'Vie','sabado':'Sáb','domingo':'Dom'};
+
+  let html = '';
+
+  if (data.advertencias && data.advertencias.length) {
+    html += `<div class="warn-box"><b style="font-weight:500">Advertencias:</b><br>${data.advertencias.join('<br>')}</div>`;
+  }
+  if (data.resumen) {
+    html += `<div class="ok-box">${data.resumen}</div>`;
+  }
+
+  html += `<div class="malla-table-wrap"><table class="malla-table">
+    <thead><tr>
+      <th class="name-col">Empleado</th>
+      <th>Cargo</th>
+      ${dias.map(d => `<th class="${d==='sabado'?'day-sat':d==='domingo'?'day-sun':''}">${diaLabel[d]}</th>`).join('')}
+      <th class="hours-col">Total h</th>
+    </tr></thead><tbody>`;
+
+  for (const [nombre, turnos] of Object.entries(data.turnos || {})) {
+    const emp = empleados.find(e => e.nombre.toLowerCase().includes(nombre.toLowerCase().split(' ')[0])) || {};
+    let totalH = 0;
+    html += `<tr><td class="name-cell">${nombre}</td><td class="role-cell">${emp.cargo || ''}</td>`;
+    dias.forEach(dia => {
+      const t = turnos[dia] || {codigo:'?', entrada:'-', salida:'-', horas:0};
+      totalH += (t.horas || 0);
+      let cellClass = '';
+      if (t.codigo === 'D') cellClass = 'shift-D';
+      else if (t.codigo === 'V') cellClass = 'shift-V';
+      else if (t.codigo === 'F') cellClass = 'shift-F';
+      else if (t.codigo === 'C') cellClass = 'shift-C';
+      else if (t.codigo === 'INVENT') cellClass = 'shift-INVENT';
+      else cellClass = 'shift-work';
+      const dayClass = dia==='sabado'?'day-sat':dia==='domingo'?'day-sun':'';
+      const label = t.codigo === 'D' ? 'D' : (t.entrada !== '-' ? t.entrada : t.codigo);
+      html += `<td class="${dayClass}"><span class="shift-cell ${cellClass}" title="${t.entrada} – ${t.salida}${t.almuerzo?' +1h alm':''}">${label}</span></td>`;
+    });
+    const horasClass = totalH > 44 ? 'warn-hours' : 'hours-ok';
+    html += `<td class="hours-col ${totalH > 44 ? 'warn-hours' : ''}">${totalH}h</td></tr>`;
+  }
+
+  html += `</tbody></table></div>`;
+  html += `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+    <button class="primary" onclick="aprobarMalla('${fi}','${ff}')">Aprobar y publicar en Sheets</button>
+    <button class="secondary" onclick="switchTab('generar-ia')">← Regenerar</button>
+    <button class="secondary" onclick="exportarCSV()">Exportar TSV (manual)</button>
+    <a href="${SHEETS_URL}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:13px;color:#185FA5;border:0.5px solid #B5D4F4;border-radius:8px;text-decoration:none;background:#E6F1FB">Abrir Sheets</a>
+  </div>`;
+
+  document.getElementById('revisar-content').innerHTML = html;
+  switchTab('revisar');
+}
+
+async function aprobarMalla(fi, ff) {
+  if (!currentMallaData) return;
+  const semana = currentMallaData.semana || (fi + ' - ' + ff);
+  const fechaAprobacion = new Date().toLocaleDateString('es-CO', {day:'numeric', month:'long', year:'numeric'});
+  const notas = document.getElementById('notas-semana') ? document.getElementById('notas-semana').value : '';
+
+  const entry = {
+    id: Date.now(), fechaInicio: fi, fechaFin: ff, semana,
+    data: currentMallaData, raw: currentMallaRaw, aprobada: fechaAprobacion
+  };
+
+  const btnAprobar = document.querySelector('button[onclick*="aprobarMalla"]');
+  if (btnAprobar) { btnAprobar.disabled = true; btnAprobar.textContent = 'Publicando en Sheets…'; }
+
+  try {
+    const payload = {
+      action: 'escribirMalla',
+      malla: currentMallaData,
+      semana, fechaAprobacion, notas,
+      empleados: empleados.map(e => ({nombre: e.nombre, cargo: e.cargo}))
+    };
+
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    const result = await resp.json();
+
+    if (result.ok) {
+      historial.unshift(entry);
+      saveHistorial(historial);
+      mostrarNotificacion('✓ Malla aprobada y publicada en Google Sheets · ' + result.hoja, 'ok');
+      document.getElementById('revisar-content').insertAdjacentHTML('afterbegin',
+        `<div class="ok-box" style="margin-bottom:12px">
+          ✓ <b style="font-weight:500">Malla publicada en Google Sheets</b> — hoja "${result.hoja}"<br>
+          <a href="${SHEETS_URL}" target="_blank" style="color:#0F6E56;font-weight:500">Abrir Google Sheets →</a>
+        </div>`
+      );
+    } else {
+      throw new Error(result.error || 'Error desconocido del servidor');
+    }
+  } catch(err) {
+    historial.unshift(entry);
+    saveHistorial(historial);
+    mostrarNotificacion('⚠ Malla guardada localmente pero no se pudo publicar en Sheets: ' + err.message, 'warn');
+    document.getElementById('revisar-content').insertAdjacentHTML('afterbegin',
+      `<div class="warn-box" style="margin-bottom:12px">
+        Malla guardada en el historial local, pero hubo un error al publicar en Sheets: ${err.message}<br>
+        Puedes intentarlo de nuevo desde el Historial → Exportar.
+      </div>`
+    );
+  } finally {
+    if (btnAprobar) { btnAprobar.disabled = false; btnAprobar.textContent = 'Aprobar y publicar en Sheets'; }
+  }
+}
+
+function mostrarNotificacion(msg, tipo) {
+  const n = document.createElement('div');
+  n.className = tipo === 'ok' ? 'ok-box' : 'warn-box';
+  n.style.cssText = 'position:fixed;bottom:20px;right:20px;max-width:380px;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,0.12)';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 5000);
+}
+
+async function publicarDesdeHistorial(idx) {
+  const h = historial[idx];
+  const btn = document.getElementById('btn-pub-' + idx);
+  if (btn) { btn.disabled = true; btn.textContent = 'Publicando…'; }
+  try {
+    const payload = {
+      action: 'escribirMalla',
+      malla: h.data, semana: h.semana,
+      fechaAprobacion: h.aprobada, notas: '',
+      empleados: empleados.map(e => ({nombre: e.nombre, cargo: e.cargo}))
+    };
+    const resp = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+    const result = await resp.json();
+    if (result.ok) {
+      mostrarNotificacion('✓ Publicado en hoja "' + result.hoja + '"', 'ok');
+      renderHistorial();
+    } else throw new Error(result.error);
+  } catch(err) {
+    mostrarNotificacion('Error: ' + err.message, 'warn');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Publicar'; }
+  }
+}
+
+async function probarConexion() {
+  const btn = document.getElementById('btn-test');
+  btn.disabled = true; btn.textContent = 'Probando…';
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST', body: JSON.stringify({action: 'ping'})
+    });
+    const result = await resp.json();
+    if (result.ok) {
+      document.getElementById('conexion-status').innerHTML =
+        '<span style="color:#0F6E56;font-weight:500">✓ ' + result.mensaje + '</span>';
+    } else throw new Error(result.error);
+  } catch(err) {
+    document.getElementById('conexion-status').innerHTML =
+      '<span style="color:#A32D2D">✗ Error: ' + err.message + '</span>';
+  }
+  btn.disabled = false; btn.textContent = 'Probar conexión';
+}
+
+function renderHistorial() {
+  const list = document.getElementById('historial-list');
+  if (!historial.length) {
+    list.innerHTML = '<div style="color:#888;font-size:13px;padding:20px 0">Aún no hay mallas aprobadas.</div>';
+    return;
+  }
+  list.innerHTML = historial.map((h,i) => `
+    <div class="history-item">
+      <div>
+        <div class="history-week">Semana del ${h.semana}</div>
+        <div class="history-meta">Aprobada el ${h.aprobada} · ${Object.keys(h.data.turnos || {}).length} empleados</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="secondary" onclick="verMallaHistorial(${i})" style="font-size:12px;padding:6px 12px">Ver</button>
+        <button class="secondary" id="btn-pub-${i}" onclick="publicarDesdeHistorial(${i})" style="font-size:12px;padding:6px 12px;color:#185FA5;border-color:#B5D4F4">Publicar</button>
+        <button class="secondary" onclick="exportarCSVHistorial(${i})" style="font-size:12px;padding:6px 12px">Exportar</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function verMallaHistorial(idx) {
+  currentMallaData = historial[idx].data;
+  renderMallaReview(currentMallaData, historial[idx].fechaInicio, historial[idx].fechaFin);
+  showPanel('generar');
+}
+
+function exportarCSV() {
+  if (!currentMallaData) return;
+  generarCSV(currentMallaData);
+}
+function exportarCSVHistorial(idx) {
+  generarCSV(historial[idx].data);
+}
+
+function generarCSV(data) {
+  const dias = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
+  const diaLabel = {'lunes':'Lunes','martes':'Martes','miercoles':'Miércoles','jueves':'Jueves','viernes':'Viernes','sabado':'Sábado','domingo':'Domingo'};
+  let rows = [['Empleado','Cargo',...dias.map(d=>diaLabel[d]),'Total horas']];
+  for (const [nombre, turnos] of Object.entries(data.turnos || {})) {
+    const emp = empleados.find(e => e.nombre.toLowerCase().includes(nombre.toLowerCase().split(' ')[0])) || {};
+    let total = 0;
+    const row = [nombre, emp.cargo || ''];
+    dias.forEach(d => {
+      const t = turnos[d] || {codigo:'?', entrada:'-', salida:'-', horas:0};
+      total += (t.horas || 0);
+      row.push(t.codigo === 'D' ? 'D' : (t.entrada !== '-' ? t.entrada + '-' + t.salida : t.codigo));
+    });
+    row.push(total + 'h');
+    rows.push(row);
+  }
+  const csv = rows.map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join('\t')).join('\n');
+  navigator.clipboard.writeText(csv).then(() => {
+    alert('✓ Malla copiada al portapapeles. Abre Google Sheets, selecciona la celda A1 y pega (Ctrl+V).');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = csv; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    alert('✓ Malla copiada. Pega en Google Sheets con Ctrl+V.');
+  });
+}
+
+function copyScript() {
+  const script = `function colorearMalla() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getActiveSheet();
+  var data = sheet.getDataRange();
+  var values = data.getValues();
+  var colores = {
+    'D': '#F1EFE8', 'V': '#E6F1FB', 'F': '#FAEEDA',
+    'C': '#EEEDFE', 'INV': '#FCEBEB'
+  };
+  for (var r = 0; r < values.length; r++) {
+    for (var c = 0; c < values[r].length; c++) {
+      var val = String(values[r][c]).trim();
+      var cell = sheet.getRange(r+1, c+1);
+      if (colores[val]) {
+        cell.setBackground(colores[val]);
+      } else if (val !== '' && !isNaN(val.split('-')[0])) {
+        cell.setBackground('#E1F5EE');
+      }
+    }
+  }
+}`;
+  navigator.clipboard.writeText(script).then(() => alert('Script copiado.')).catch(() => alert('Copia el código manualmente.'));
+}
+
+const today = new Date();
+const dayOfWeek = today.getDay();
+const daysToMonday = dayOfWeek === 0 ? 1 : (8 - dayOfWeek);
+const nextMonday = new Date(today);
+nextMonday.setDate(today.getDate() + daysToMonday);
+const nextSunday = new Date(nextMonday);
+nextSunday.setDate(nextMonday.getDate() + 6);
+const fmt = d => d.toISOString().split('T')[0];
+document.getElementById('fecha-inicio').value = fmt(nextMonday);
+document.getElementById('fecha-fin').value = fmt(nextSunday);
+
+const weekStr = nextMonday.toLocaleDateString('es-CO',{day:'numeric',month:'short'}) + ' – ' + nextSunday.toLocaleDateString('es-CO',{day:'numeric',month:'short'});
+document.getElementById('m-semana').textContent = weekStr;
+
+renderEmpleados();
+renderHistorial();
+</script>
+</body>
+</html>
