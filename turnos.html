@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Malla de Turnos — El Buen Gusto</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f4f0;color:#1a1a1a;min-height:100vh}
+header{background:#1a1a1a;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.header-left{display:flex;flex-direction:column;gap:2px}
+.header-logo{font-size:11px;color:#888;letter-spacing:0.05em;text-transform:uppercase}
+.header-title{font-size:16px;font-weight:500}
+.header-semana{font-size:12px;color:#aaa;margin-top:1px}
+.week-nav{display:flex;align-items:center;gap:8px}
+.week-nav button{background:none;border:0.5px solid #444;color:#ccc;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.week-nav button:hover{background:#333;color:#fff;border-color:#666}
+.week-nav button.active{background:#fff;color:#1a1a1a;border-color:#fff;font-weight:500}
+.week-nav button:disabled{opacity:0.3;cursor:default}
+.main{max-width:900px;margin:0 auto;padding:16px}
+.card{background:#fff;border-radius:12px;border:0.5px solid #e0e0e0;overflow:hidden;margin-bottom:14px}
+.card-header{padding:14px 16px;border-bottom:0.5px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.semana-label{font-size:15px;font-weight:500}
+.aprobada-label{font-size:11px;color:#888}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:580px}
+th{background:#1a1a1a;color:#fff;padding:8px 10px;text-align:center;font-weight:500;font-size:11px;white-space:nowrap}
+th.col-name{text-align:left;min-width:130px}
+th.col-role{text-align:left;min-width:110px;font-weight:400;color:#aaa}
+td{padding:8px 10px;border-bottom:0.5px solid #f0f0f0;text-align:center;vertical-align:middle}
+td.col-name{text-align:left;font-weight:500;font-size:12px;background:#fafaf9;white-space:nowrap}
+td.col-role{text-align:left;font-size:10px;color:#888;background:#fafaf9;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf8}
+tr:hover td.col-name,tr:hover td.col-role{background:#f5f5f3}
+.turno{display:inline-block;padding:4px 6px;border-radius:6px;font-size:10px;font-weight:500;min-width:52px;line-height:1.4;text-align:center}
+.t-work{background:#E1F5EE;color:#085041}
+.t-D{background:#F1EFE8;color:#5F5E5A}
+.t-V{background:#E6F1FB;color:#185FA5}
+.t-F{background:#FAEEDA;color:#854F0B}
+.t-C{background:#EEEDFE;color:#3C3489}
+.t-INV{background:#FCEBEB;color:#A32D2D}
+.total-ok{background:#EAF3DE;color:#27500A;font-weight:500}
+.total-warn{background:#FCEBEB;color:#A32D2D;font-weight:500}
+.th-sat{background:#2a2a2a}
+.th-sun{background:#333}
+.td-sat{background:#fafaf8}
+.td-sun{background:#f5f5f3}
+.legend{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-top:0.5px solid #f0f0f0;background:#fafaf9}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:#666}
+.leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.skeleton{animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.skel-row{height:44px;background:#f0f0f0;border-radius:4px;margin-bottom:6px}
+.skel-header{height:36px;background:#e0e0e0;border-radius:4px;margin-bottom:8px}
+.empty-state{text-align:center;padding:40px 20px;color:#888}
+.empty-icon{font-size:36px;margin-bottom:10px;opacity:0.4}
+.empty-title{font-size:15px;font-weight:500;color:#555;margin-bottom:6px}
+.empty-sub{font-size:13px;line-height:1.6}
+.hist-section{margin-bottom:14px}
+.hist-title{font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;padding:0 2px}
+.hist-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.hist-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:10px;padding:12px 14px;cursor:pointer;transition:border-color 0.15s}
+.hist-card:hover{border-color:#aaa}
+.hist-card.current{border:2px solid #1a1a1a}
+.hist-week{font-size:12px;font-weight:500;margin-bottom:2px}
+.hist-meta{font-size:10px;color:#888}
+.hist-badge{display:inline-block;font-size:9px;background:#E1F5EE;color:#085041;padding:2px 7px;border-radius:20px;margin-top:4px;font-weight:500}
+.search-bar{background:#fff;border-radius:10px;border:0.5px solid #e0e0e0;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.search-bar input{border:none;outline:none;font-size:13px;flex:1;font-family:inherit;background:transparent;color:#1a1a1a}
+.search-bar input::placeholder{color:#aaa}
+.search-icon{color:#aaa;font-size:16px}
+.highlight{background:#FFF9C4 !important;color:#1a1a1a !important}
+footer{text-align:center;padding:20px;font-size:11px;color:#aaa}
+@media(max-width:600px){
+  header{padding:12px 14px}
+  .header-title{font-size:14px}
+  .main{padding:12px}
+  td,th{padding:6px 7px}
+  .turno{min-width:44px;font-size:9px}
+  th.col-role,td.col-role{display:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="header-logo">El Buen Gusto · Dpto. Abastecimiento</div>
+    <div class="header-title">Malla de Turnos</div>
+    <div class="header-semana" id="header-semana">Cargando...</div>
+  </div>
+  <div class="week-nav">
+    <button id="btn-prev" onclick="navSemana(-1)" disabled title="Semana anterior">←</button>
+    <button id="btn-latest" onclick="irUltima()">Semana actual</button>
+    <button id="btn-next" onclick="navSemana(1)" disabled title="Semana siguiente">→</button>
+  </div>
+</header>
+
+<div class="main">
+
+  <div class="search-bar">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="search-input" placeholder="Buscar empleado..." oninput="filtrarEmpleados(this.value)">
+  </div>
+
+  <div id="malla-container">
+    <div class="card skeleton">
+      <div style="padding:16px">
+        <div class="skel-header"></div>
+        <div class="skel-row"></div>
+        <div class="skel-row"></div>
+        <div class="skel-row"></div>
+        <div class="skel-row" style="width:70%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="historial-section" style="display:none">
+    <div class="hist-title">Semanas anteriores</div>
+    <div class="hist-grid" id="hist-grid"></div>
+  </div>
+
+</div>
+
+<footer>Malla de Turnos · El Buen Gusto · Solo lectura · Actualizada automáticamente</footer>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX9LaIAcbNFhMLWdxZDDY7dY80j8aAupf8DpRVqoK2E6OkIXo6-l2ujbC7uXpqUWg5/exec';
+
+let todasMallas = [];
+let idxActual = 0;
+let filtroTexto = '';
+
+const DIAS_LABEL = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+const DIAS_KEY = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
+
+async function cargarMallas() {
+  try {
+    const url = APPS_SCRIPT_URL + '?action=getMallas&t=' + Date.now();
+    const resp = await fetch(url);
+    const data = await resp.json();
+    if (data.ok && data.mallas && data.mallas.length) {
+      todasMallas = data.mallas;
+      idxActual = 0;
+      renderMalla(idxActual);
+      renderHistorial();
+    } else {
+      mostrarVacio('No hay mallas publicadas aún', 'El coordinador del área publicará la malla de cada semana aquí.');
+    }
+  } catch(e) {
+    mostrarVacio('No se pudo cargar la malla', 'Verifica tu conexión e intenta de nuevo. Si el problema persiste contacta al coordinador.');
+  }
+}
+
+function renderMalla(idx) {
+  const m = todasMallas[idx];
+  if (!m) return;
+
+  document.getElementById('header-semana').textContent = 'Semana: ' + m.semana;
+  document.getElementById('btn-prev').disabled = idx >= todasMallas.length - 1;
+  document.getElementById('btn-next').disabled = idx <= 0;
+  document.getElementById('btn-latest').classList.toggle('active', idx === 0);
+
+  const emps = filtroTexto
+    ? m.empleados.filter(e => e.nombre.toLowerCase().includes(filtroTexto.toLowerCase()))
+    : m.empleados;
+
+  let html = `<div class="card">
+    <div class="card-header">
+      <div>
+        <div class="semana-label">Semana del ${m.semana}</div>
+        ${m.aprobada ? `<div class="aprobada-label">Publicada el ${m.aprobada}</div>` : ''}
+      </div>
+      <span style="font-size:11px;background:#E1F5EE;color:#085041;padding:3px 10px;border-radius:20px;font-weight:500">${idx === 0 ? 'Semana actual' : 'Histórico'}</span>
+    </div>
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="col-name">Colaborador</th>
+          <th class="col-role">Cargo</th>
+          <th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th>
+          <th class="th-sat">Sáb</th><th class="th-sun">Dom</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
+  if (!emps.length) {
+    html += `<tr><td colspan="10" style="padding:20px;text-align:center;color:#888;font-size:12px">
+      ${filtroTexto ? 'No se encontró "' + filtroTexto + '" en esta semana.' : 'Sin datos'}
+    </td></tr>`;
+  } else {
+    emps.forEach(emp => {
+      const totalStr = String(emp.total || '');
+      const totalNum = parseInt(totalStr) || 0;
+      const totalClass = totalNum > 44 ? 'total-warn' : 'total-ok';
+      html += `<tr>
+        <td class="col-name">${highlight(emp.nombre)}</td>
+        <td class="col-role">${emp.cargo || ''}</td>`;
+
+      [emp.lunes, emp.martes, emp.miercoles, emp.jueves, emp.viernes].forEach(v => {
+        html += `<td>${turnoCell(v)}</td>`;
+      });
+      html += `<td class="td-sat">${turnoCell(emp.sabado)}</td>`;
+      html += `<td class="td-sun">${turnoCell(emp.domingo)}</td>`;
+      html += `<td><span class="turno ${totalClass}">${totalStr}</span></td>`;
+      html += `</tr>`;
+    });
+  }
+
+  html += `</tbody></table></div>
+  <div class="legend">
+    <div class="leg-item"><div class="leg-dot" style="background:#E1F5EE"></div>Turno laboral</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#F1EFE8"></div>D = Descanso</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#E6F1FB"></div>V = Vacaciones</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#FAEEDA"></div>F = Día familia</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#EEEDFE"></div>C = Compensatorio</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#FCEBEB"></div>INV = Inventario</div>
+    <div class="leg-item" style="margin-left:auto;color:#aaa">Horas no incluyen almuerzo (mar–vie)</div>
+  </div>
+  </div>`;
+
+  document.getElementById('malla-container').innerHTML = html;
+  document.getElementById('historial-section').style.display = 'block';
+
+  document.querySelectorAll('.hist-card').forEach((c, i) => {
+    c.classList.toggle('current', i === idx);
+  });
+}
+
+function turnoCell(val) {
+  const v = String(val || '').trim();
+  if (!v || v === '0') return '<span class="turno t-D">—</span>';
+  if (v === 'D') return '<span class="turno t-D">D</span>';
+  if (v === 'V') return '<span class="turno t-V">V</span>';
+  if (v === 'F') return '<span class="turno t-F">F</span>';
+  if (v === 'C') return '<span class="turno t-C">C</span>';
+  if (v.includes('INV') || v.includes('6am')) return '<span class="turno t-INV">INV</span>';
+  return `<span class="turno t-work">${v.replace('\n', '<br>')}</span>`;
+}
+
+function highlight(text) {
+  if (!filtroTexto) return text;
+  const re = new RegExp('(' + filtroTexto.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+  return text.replace(re, '<mark class="highlight">$1</mark>');
+}
+
+function renderHistorial() {
+  const grid = document.getElementById('hist-grid');
+  grid.innerHTML = todasMallas.map((m, i) =>
+    `<div class="hist-card ${i === idxActual ? 'current' : ''}" onclick="irSemana(${i})">
+      <div class="hist-week">${m.semana}</div>
+      <div class="hist-meta">${m.empleados ? m.empleados.length + ' colaboradores' : ''}</div>
+      ${i === 0 ? '<span class="hist-badge">Semana actual</span>' : ''}
+    </div>`
+  ).join('');
+}
+
+function irSemana(idx) {
+  idxActual = idx;
+  renderMalla(idx);
+  renderHistorial();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function navSemana(dir) {
+  const nuevo = idxActual + dir;
+  if (nuevo >= 0 && nuevo < todasMallas.length) irSemana(nuevo);
+}
+
+function irUltima() {
+  irSemana(0);
+}
+
+function filtrarEmpleados(texto) {
+  filtroTexto = texto.trim();
+  renderMalla(idxActual);
+}
+
+function mostrarVacio(titulo, sub) {
+  document.getElementById('malla-container').innerHTML = `
+    <div class="card">
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">${titulo}</div>
+        <div class="empty-sub">${sub}</div>
+      </div>
+    </div>`;
+}
+
+cargarMallas();
+</script>
+</body>
+</html>
