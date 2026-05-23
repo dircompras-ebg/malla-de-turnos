@@ -33,7 +33,11 @@ td.col-role{text-align:left;font-size:10px;color:#888;background:#fafaf9;white-s
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#fafaf8}
 tr:hover td.col-name,tr:hover td.col-role{background:#f5f5f3}
-.turno{display:inline-block;padding:4px 6px;border-radius:6px;font-size:10px;font-weight:500;min-width:52px;line-height:1.4;text-align:center}
+.turno{display:inline-flex;flex-direction:column;align-items:center;padding:4px 6px;border-radius:6px;font-size:10px;font-weight:500;min-width:58px;line-height:1.4;text-align:center;gap:1px}
+.t-entrada{font-size:11px;font-weight:600}
+.t-separador{font-size:8px;opacity:0.6;line-height:1}
+.t-salida{font-size:11px;font-weight:600}
+.t-alm{font-size:9px;opacity:0.75;background:rgba(0,0,0,0.08);border-radius:4px;padding:1px 4px;margin-top:1px}
 .t-work{background:#E1F5EE;color:#085041}
 .t-D{background:#F1EFE8;color:#5F5E5A}
 .t-V{background:#E6F1FB;color:#185FA5}
@@ -233,12 +237,22 @@ function renderMalla(idx) {
 function turnoCell(val) {
   const v = String(val || '').trim();
   if (!v || v === '0') return '<span class="turno t-D">—</span>';
-  if (v === 'D') return '<span class="turno t-D">D</span>';
-  if (v === 'V') return '<span class="turno t-V">V</span>';
-  if (v === 'F') return '<span class="turno t-F">F</span>';
-  if (v === 'C') return '<span class="turno t-C">C</span>';
-  if (v.includes('INV') || v.includes('6am')) return '<span class="turno t-INV">INV</span>';
-  return `<span class="turno t-work">${v.replace('\n', '<br>')}</span>`;
+  if (v === 'D') return '<span class="turno t-D">Descanso</span>';
+  if (v === 'V') return '<span class="turno t-V">Vacaciones</span>';
+  if (v === 'F') return '<span class="turno t-F">Día familia</span>';
+  if (v === 'C') return '<span class="turno t-C">Compensatorio</span>';
+  if (v.includes('INV') || v.includes('6am')) return '<span class="turno t-INV">Inventario<br>6am</span>';
+  // Work shift: value is "8am\n5pm" or "8am-5pm" — parse and show with lunch indicator
+  const cleaned = v.replace('\n', '-');
+  const parts = cleaned.split('-');
+  if (parts.length >= 2) {
+    const entrada = parts[0].trim();
+    const resto = parts.slice(1).join('-').trim();
+    // Check if lunch is indicated (column after hours usually has +alm or similar from sheets)
+    const tieneAlm = v.includes('+alm') || v.includes('alm');
+    return `<span class="turno t-work"><span class="t-entrada">${entrada}</span><span class="t-separador">→</span><span class="t-salida">${resto}</span>${tieneAlm ? '<span class="t-alm">+alm</span>' : ''}</span>`;
+  }
+  return `<span class="turno t-work">${v}</span>`;
 }
 
 function highlight(text) {
