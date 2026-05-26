@@ -343,7 +343,7 @@ const TURNOS_DEFAULT = [
   {codigo:'V',  entrada:'-',   salida:'-',   horas:0, almuerzo:false, desc:'Vacaciones'},
   {codigo:'F',  entrada:'-',   salida:'-',   horas:0, almuerzo:false, desc:'Día de la familia'},
   {codigo:'C',  entrada:'-',   salida:'-',   horas:0, almuerzo:false, desc:'Compensatorio'},
-  {codigo:'INVENT',entrada:'6am',salida:'?', horas:8, almuerzo:false, desc:'Inventario fin de mes'},
+  {codigo:'INVENT',entrada:'6am',salida:'1pm',horas:7, almuerzo:false, desc:'Inventario fin de mes'},
 ];
 
 function loadTurnos() {
@@ -455,7 +455,16 @@ let empleados = loadEmpleados() || JSON.parse(JSON.stringify(EMPLEADOS_DEFAULT))
 let historial = loadHistorial();
 let currentMallaData = null;
 let currentMallaRaw = null;
-let mallaCache = {};
+
+// ── Caché persistente en localStorage ───────────────────────────────────────
+const MALLA_CACHE_KEY = 'malla_gen_cache_v1';
+let mallaCache = (() => {
+  try { return JSON.parse(localStorage.getItem(MALLA_CACHE_KEY) || '{}'); } catch(e) { return {}; }
+})();
+function guardarEnCache(key, data) {
+  mallaCache[key] = data;
+  try { localStorage.setItem(MALLA_CACHE_KEY, JSON.stringify(mallaCache)); } catch(e) {}
+}
 
 function getMallaCacheKey() {
   const fi  = document.getElementById('fecha-inicio').value;
@@ -624,22 +633,25 @@ REGLAS OBLIGATORIAS:
 3. Esta semana rotación Manuel/Yesid: ${rotMY === 'A' ? 'Manuel entra 8am-sale 5pm · Yesid entra 9am-sale 6pm' : 'Manuel entra 9am-sale 6pm · Yesid entra 8am-sale 5pm'}
 4. Esta semana rotación Iván/Fabián los martes y jueves: ${rotIF === 'A' ? 'Iván entra a las 7am los martes y jueves' : 'Fabián entra a las 7am los martes y jueves'}
 5. Cristian Medina tiene horario fijo: lun-vie 8am-5pm, sábado 8am-12pm
-6. De martes a viernes tienen 1 hora de almuerzo (no se cuenta en las 44h)
+6. De martes a viernes tienen 1 hora de almuerzo (NO se cuenta en las 44h — descuéntala del campo "horas")
 7. Los lunes y sábados NO hay hora de almuerzo
 8. El domingo es descanso para todos
-${inventario === 'si' ? `9. INVENTARIO: el ${diaInv} todos entran a las 6am (turno INVENT — horario especial de inventario, ese día no aplica horario normal)` : ''}
+${inventario === 'si' ? `9. DÍA DE INVENTARIO: el ${diaInv} TODOS los empleados usan EXACTAMENTE el código "INVENT" con entrada "6am" y salida "1pm". No uses ningún otro código numérico para ese día. Ejemplo: {"codigo":"INVENT","entrada":"6am","salida":"1pm","horas":7,"almuerzo":false}` : ''}
 ${notas ? `NOTAS ESPECIALES: ${notas}` : ''}
+
+REGLA CRÍTICA SOBRE EL CAMPO "horas": SIEMPRE debe ser las horas NETAS trabajadas, sin contar el almuerzo.
+Ejemplos correctos: turno 7am-4pm con almuerzo → horas:8 (no 9). Turno 8am-5pm con almuerzo → horas:8. Turno 9am-6pm con almuerzo → horas:8. Turno 10am-7pm con almuerzo → horas:8. Turno 8am-12pm sin almuerzo → horas:4.
 
 FORMATO DE RESPUESTA — responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown, sin explicaciones. El formato exacto es:
 {
   "semana": "26 May - 1 Jun 2026",
   "turnos": {
     "NOMBRE EMPLEADO": {
-      "lunes": {"codigo": "13", "entrada": "8am", "salida": "5pm", "horas": 8, "almuerzo": true},
-      "martes": {"codigo": "13", "entrada": "8am", "salida": "5pm", "horas": 8, "almuerzo": true},
-      "miercoles": {"codigo": "13", "entrada": "8am", "salida": "5pm", "horas": 8, "almuerzo": true},
-      "jueves": {"codigo": "13", "entrada": "8am", "salida": "5pm", "horas": 8, "almuerzo": true},
-      "viernes": {"codigo": "13", "entrada": "8am", "salida": "5pm", "horas": 8, "almuerzo": true},
+      "lunes": {"codigo": "52", "entrada": "7am", "salida": "4pm", "horas": 8, "almuerzo": false},
+      "martes": {"codigo": "52", "entrada": "7am", "salida": "4pm", "horas": 8, "almuerzo": true},
+      "miercoles": {"codigo": "52", "entrada": "7am", "salida": "4pm", "horas": 8, "almuerzo": true},
+      "jueves": {"codigo": "52", "entrada": "7am", "salida": "4pm", "horas": 8, "almuerzo": true},
+      "viernes": {"codigo": "52", "entrada": "7am", "salida": "4pm", "horas": 8, "almuerzo": true},
       "sabado": {"codigo": "41", "entrada": "8am", "salida": "12pm", "horas": 4, "almuerzo": false},
       "domingo": {"codigo": "D", "entrada": "-", "salida": "-", "horas": 0, "almuerzo": false},
       "total_horas": 44
@@ -648,7 +660,7 @@ FORMATO DE RESPUESTA — responde ÚNICAMENTE con un objeto JSON válido, sin te
   "advertencias": [],
   "resumen": "Texto breve explicando las decisiones tomadas"
 }
-Usa "D" para descanso, "V" para vacaciones, "F" para día de familia, "C" para compensatorio. El campo "codigo" puede ser un número de turno o una letra especial.`;
+Usa "D" para descanso, "V" para vacaciones, "F" para día de familia, "C" para compensatorio, "INVENT" para inventario. El campo "codigo" puede ser un número de turno o un código especial.`;
 
   const btn = document.getElementById('btn-generar');
   const status = document.getElementById('gen-status');
@@ -679,8 +691,13 @@ Usa "D" para descanso, "V" para vacaciones, "F" para día de familia, "C" para c
     try {
       const clean = raw.replace(/```json|```/g, '').trim();
       currentMallaData = JSON.parse(clean);
-      // Store in cache only on successful parse
-      mallaCache[cacheKey] = currentMallaData;
+      // Normalización post-parse: corrige celdas de inventario que la IA
+      // dejó como turno regular en lugar de usar el código INVENT
+      if (inventario === 'si' && diaInv) {
+        normalizarInventario(currentMallaData, diaInv, fi);
+      }
+      // Store in cache only on successful parse (persiste en localStorage)
+      guardarEnCache(cacheKey, currentMallaData);
       status.innerHTML = '<span style="color:#0F6E56">✓ Malla generada correctamente</span>';
       // Auto-navigate to visual review — no extra click needed
       renderMallaReview(currentMallaData, fi, ff);
@@ -696,6 +713,66 @@ Usa "D" para descanso, "V" para vacaciones, "F" para día de familia, "C" para c
     status.innerHTML = `<span style="color:#A32D2D">Error: ${e.message}</span>`;
   }
   btn.disabled = false;
+}
+
+// ── Normalización post-generación ───────────────────────────────────────────
+function normalizarInventario(data, diaInvISO, fiISO) {
+  // Calcula qué día de la semana (0=lun…6=dom) corresponde a diaInvISO
+  // y convierte esa columna a código INVENT si la IA lo dejó como turno regular.
+  const DIAS = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
+  const fechaInv = new Date(diaInvISO + 'T12:00:00');
+  const fechaIni = new Date(fiISO + 'T12:00:00');
+  const diffDias = Math.round((fechaInv - fechaIni) / 86400000);
+  if (diffDias < 0 || diffDias > 6) return; // fuera de la semana
+  const diaKey = DIAS[diffDias];
+  if (!diaKey) return;
+  for (const nombre of Object.keys(data.turnos || {})) {
+    const celda = data.turnos[nombre][diaKey];
+    if (!celda) continue;
+    // Si la IA usó un turno regular (no INVENT), lo forzamos a INVENT
+    if (celda.codigo !== 'INVENT') {
+      const salidaActual = celda.salida && celda.salida !== '-' && celda.salida !== '?' ? celda.salida : '1pm';
+      data.turnos[nombre][diaKey] = {
+        codigo: 'INVENT',
+        entrada: '6am',
+        salida: salidaActual,
+        horas: 7,
+        almuerzo: false
+      };
+    }
+  }
+}
+
+// ── Helpers de horas ────────────────────────────────────────────────────────
+function _parseHora(s) {
+  // Convierte "8am","7am","12pm","1pm","6pm" → número de horas (float)
+  if (!s || s === '-' || s === '?') return null;
+  const m = s.match(/^(\d+)(?::(\d+))?\s*(am|pm)$/i);
+  if (!m) return null;
+  let h = parseInt(m[1]);
+  const min = m[2] ? parseInt(m[2]) / 60 : 0;
+  const suf = m[3].toLowerCase();
+  if (suf === 'pm' && h !== 12) h += 12;
+  if (suf === 'am' && h === 12) h = 0;
+  return h + min;
+}
+
+function parsearHorasNetas(t) {
+  // Devuelve las horas NETAS trabajadas (descontando almuerzo si aplica).
+  // Siempre recalcula desde entrada/salida para no depender del campo
+  // "horas" que la IA a veces reporta en bruto.
+  const cod = String(t.codigo || '');
+  if (['D','V','F','C'].includes(cod)) return 0;
+  if (cod === 'INVENT') return t.horas || 7; // inventario: usar lo que venga
+  const hi = _parseHora(t.entrada);
+  const hs = _parseHora(t.salida);
+  if (hi !== null && hs !== null && hs > hi) {
+    const bruto = hs - hi;
+    return t.almuerzo ? bruto - 1 : bruto;
+  }
+  // Fallback: campo horas de la IA, descontando almuerzo si viene en bruto
+  const h = t.horas || 0;
+  return t.almuerzo ? Math.max(0, h - 1) : h;
 }
 
 function renderMallaReview(data, fi, ff) {
@@ -716,18 +793,38 @@ function renderMallaReview(data, fi, ff) {
     `<option value="${t.codigo}">${t.codigo} · ${t.entrada === '-' ? t.desc : t.entrada+'-'+t.salida+' ('+t.horas+'h'+(t.almuerzo?' +alm':'')+')'}</option>`
   ).join('');
 
+  // ── Detectar columna de inventario ─────────────────────────────────────
+  let invDiaKey = null;
+  try {
+    const esInv = document.getElementById('es-inventario').value === 'si';
+    if (esInv) {
+      const diaInvISO = document.getElementById('dia-inventario').value;
+      if (diaInvISO && fi) {
+        const diff = Math.round(
+          (new Date(diaInvISO + 'T12:00:00') - new Date(fi + 'T12:00:00')) / 86400000
+        );
+        if (diff >= 0 && diff <= 6) invDiaKey = dias[diff];
+      }
+    }
+  } catch(e) {}
+
   html += `<div class="malla-table-wrap"><table class="malla-table">
     <thead><tr>
       <th class="name-col">Empleado</th>
       <th>Cargo</th>
-      ${dias.map(d => `<th class="${d==='sabado'?'day-sat':d==='domingo'?'day-sun':''}">${diaLabel[d]}</th>`).join('')}
+      ${dias.map(d => {
+        const isInv = d === invDiaKey;
+        const cls = [d==='sabado'?'day-sat':d==='domingo'?'day-sun':'', isInv?'inv-day-th':''].filter(Boolean).join(' ');
+        const badge = isInv ? `<br><span class="inv-day-badge">Inventario</span>` : '';
+        return `<th class="${cls}">${diaLabel[d]}${badge}</th>`;
+      }).join('')}
       <th class="hours-col">Total h</th>
     </tr></thead><tbody>`;
 
   for (const [nombre, turnos] of Object.entries(data.turnos || {})) {
     const emp = empleados.find(e => e.nombre.toLowerCase().includes(nombre.toLowerCase().split(' ')[0])) || {};
     let totalH = 0;
-    dias.forEach(d => { totalH += (turnos[d] ? (turnos[d].horas || 0) : 0); });
+    dias.forEach(d => { totalH += parsearHorasNetas(turnos[d] || {}); });
 
     html += `<tr><td class="name-cell">${nombre}</td><td class="role-cell">${emp.cargo || ''}</td>`;
     dias.forEach(dia => {
@@ -739,14 +836,19 @@ function renderMallaReview(data, fi, ff) {
       else if (cod === 'F') cellClass = 'shift-F';
       else if (cod === 'C') cellClass = 'shift-C';
       else if (cod === 'INVENT') cellClass = 'shift-INVENT';
-      const dayClass = dia==='sabado'?'day-sat':dia==='domingo'?'day-sun':'';
+      const isInvCol = dia === invDiaKey;
+      const dayClass = [
+        dia==='sabado'?'day-sat':dia==='domingo'?'day-sun':'',
+        isInvCol?'inv-day-col':''
+      ].filter(Boolean).join(' ');
 
       // Label: show entrada-salida + almuerzo indicator for work shifts
       let labelLines = '';
       if (['D','V','F','C'].includes(cod)) {
         labelLines = cod;
       } else if (cod === 'INVENT') {
-        labelLines = 'INV<br>6am';
+        const salInv = t.salida && t.salida !== '-' && t.salida !== '?' ? t.salida : '1pm';
+        labelLines = `6am<br>${salInv}`;
       } else {
         labelLines = `${t.entrada}<br>${t.salida}${t.almuerzo ? '<br><span style="font-size:9px;opacity:0.8">+alm</span>' : ''}`;
       }
