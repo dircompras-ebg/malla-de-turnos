@@ -4,99 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Malla de Turnos — Dpto. Abastecimiento</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,sans-serif;background:#f5f4f0;color:#1a1a1a;font-size:14px}
-.app{max-width:1100px;margin:0 auto;padding:20px}
-header{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
-h1{font-size:17px;font-weight:500}
-.subtitle{font-size:12px;color:#666;margin-top:2px}
-.nav{display:flex;gap:6px}
-.nav button{background:none;border:0.5px solid #ccc;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer;color:#444}
-.nav button.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
-.panel{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:20px;margin-bottom:16px;display:none}
-.panel.visible{display:block}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-.metric{background:#f5f4f0;border-radius:8px;padding:12px 14px}
-.metric-label{font-size:11px;color:#888;margin-bottom:4px}
-.metric-val{font-size:22px;font-weight:500}
-.metric-sub{font-size:11px;color:#888;margin-top:2px}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{background:#f5f4f0;padding:7px 8px;text-align:left;font-weight:500;border-bottom:0.5px solid #ddd;white-space:nowrap}
-td{padding:7px 8px;border-bottom:0.5px solid #eee;vertical-align:middle}
-tr:last-child td{border-bottom:none}
-.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500}
-.badge-blue{background:#E6F1FB;color:#185FA5}
-.badge-teal{background:#E1F5EE;color:#0F6E56}
-.badge-amber{background:#FAEEDA;color:#854F0B}
-.badge-red{background:#FCEBEB;color:#A32D2D}
-.badge-gray{background:#F1EFE8;color:#5F5E5A}
-.badge-purple{background:#EEEDFE;color:#3C3489}
-btn{display:inline-block}
-button.primary{background:#1a1a1a;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:inherit}
-button.primary:hover{background:#333}
-button.secondary{background:none;color:#444;border:0.5px solid #ccc;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:inherit}
-button.secondary:hover{background:#f5f4f0}
-button.danger{background:none;color:#A32D2D;border:0.5px solid #f09595;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit}
-input,select{border:0.5px solid #ccc;border-radius:8px;padding:7px 10px;font-size:13px;font-family:inherit;width:100%;background:#fff;color:#1a1a1a}
-input:focus,select:focus{outline:none;border-color:#888}
-label{font-size:12px;color:#555;display:block;margin-bottom:4px}
-.form-row{display:grid;gap:10px;margin-bottom:12px}
-.form-row.cols2{grid-template-columns:1fr 1fr}
-.form-row.cols3{grid-template-columns:1fr 1fr 1fr}
-.section-title{font-size:13px;font-weight:500;margin-bottom:12px;padding-bottom:8px;border-bottom:0.5px solid #eee}
-.info-box{background:#E6F1FB;border-radius:8px;padding:12px 14px;font-size:12px;color:#0C447C;line-height:1.6;margin-bottom:14px}
-.warn-box{background:#FAEEDA;border-radius:8px;padding:12px 14px;font-size:12px;color:#633806;line-height:1.6;margin-bottom:14px}
-.ok-box{background:#E1F5EE;border-radius:8px;padding:12px 14px;font-size:12px;color:#085041;line-height:1.6;margin-bottom:14px}
-.err-box{background:#FCEBEB;border-radius:8px;padding:12px 14px;font-size:12px;color:#791F1F;line-height:1.6;margin-bottom:14px}
-.shift-cell{display:inline-block;min-width:54px;padding:3px 7px;border-radius:6px;text-align:center;font-size:11px;font-weight:500}
-.shift-D{background:#F1EFE8;color:#5F5E5A}
-.shift-work{background:#E1F5EE;color:#085041}
-.shift-V{background:#E6F1FB;color:#185FA5}
-.shift-C{background:#EEEDFE;color:#3C3489}
-.shift-F{background:#FAEEDA;color:#854F0B}
-.shift-INVENT{background:#FCEBEB;color:#A32D2D}
-.hours-ok{color:#0F6E56;font-weight:500}
-.hours-warn{color:#A32D2D;font-weight:500}
-.spinner{display:inline-block;width:16px;height:16px;border:2px solid #ccc;border-top-color:#1a1a1a;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
-@keyframes spin{to{transform:rotate(360deg)}}
-.ai-output{background:#f5f4f0;border-radius:8px;padding:14px;font-size:12px;line-height:1.8;white-space:pre-wrap;min-height:60px;max-height:300px;overflow-y:auto;margin-bottom:12px;color:#1a1a1a}
-.week-selector{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
-.malla-table-wrap{overflow-x:auto;margin-bottom:14px}
-.malla-table{border-collapse:collapse;font-size:11px;min-width:700px}
-.malla-table th{background:#1a1a1a;color:#fff;padding:6px 8px;font-weight:500;white-space:nowrap;text-align:center}
-.malla-table th.name-col{text-align:left;min-width:160px}
-.malla-table td{padding:5px 6px;border:0.5px solid #eee;text-align:center}
-.malla-table td.name-cell{text-align:left;font-weight:500;background:#f9f9f8;white-space:nowrap;padding-left:10px}
-.malla-table td.role-cell{font-size:10px;color:#888;background:#f9f9f8;white-space:nowrap}
-.day-sat{background:#fafaf8}
-.day-sun{background:#f5f4f0}
-.hours-col{background:#f0f8f4;font-weight:500;color:#0F6E56;min-width:36px}
-.warn-hours{background:#FCEBEB !important;color:#A32D2D}
-.tab-bar{display:flex;gap:0;border-bottom:0.5px solid #ddd;margin-bottom:16px}
-.tab{padding:8px 16px;font-size:13px;cursor:pointer;color:#666;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
-.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:500}
-.history-item{border:0.5px solid #ddd;border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
-.history-week{font-size:13px;font-weight:500}
-.history-meta{font-size:11px;color:#888;margin-top:2px}
-.emp-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid #eee}
-.emp-row:last-child{border-bottom:none}
-.emp-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
-.emp-name{font-size:13px;font-weight:500}
-.emp-role{font-size:11px;color:#888}
-.emp-status-active{color:#0F6E56}
-.emp-status-vacant{color:#A32D2D}
-.tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;border:0.5px solid #ddd;color:#666;margin-right:4px}
-.copy-btn{background:#f5f4f0;border:0.5px solid #ddd;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;color:#444;font-family:inherit}
-.copy-btn:hover{background:#eee}
-.steps{counter-reset:step}
-.step{display:flex;gap:12px;margin-bottom:16px;align-items:flex-start}
-.step-num{width:24px;height:24px;border-radius:50%;background:#1a1a1a;color:#fff;font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.step-content{flex:1}
-.step-title{font-size:13px;font-weight:500;margin-bottom:3px}
-.step-desc{font-size:12px;color:#555;line-height:1.6}
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="app">
@@ -120,7 +28,7 @@ label{font-size:12px;color:#555;display:block;margin-bottom:4px}
   <div class="grid3" style="margin-bottom:20px">
     <div class="metric"><div class="metric-label">Empleados activos</div><div class="metric-val" id="m-activos">8</div><div class="metric-sub">+ 1 vacante (Analista de compras)</div></div>
     <div class="metric"><div class="metric-label">Semana actual</div><div class="metric-val" id="m-semana">26 May – 1 Jun</div><div class="metric-sub">2026</div></div>
-    <div class="metric"><div class="metric-label">Último inventario</div><div class="metric-val">31 May</div><div class="metric-sub">Fin de mes — horario especial</div></div>
+    <div class="metric"><div class="metric-label">Último inventario</div><div class="metric-val" id="m-inventario">–</div><div class="metric-sub">Fin de mes — horario especial</div></div>
   </div>
   <div class="section-title">Reglas activas del equipo</div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
@@ -206,12 +114,48 @@ label{font-size:12px;color:#555;display:block;margin-bottom:4px}
   <div id="tab-config">
     <div class="section-title">Semana a planificar</div>
     <div class="form-row cols2" style="max-width:500px">
-      <div><label>Fecha inicio (lunes)</label><input type="date" id="fecha-inicio"></div>
-      <div><label>Fecha fin (domingo)</label><input type="date" id="fecha-fin"></div>
+      <div><label>Fecha inicio (lunes)</label>
+        <div class="date-field-wrap">
+          <input type="text" id="fecha-inicio-display" placeholder="DD/MM/AAAA" maxlength="10" autocomplete="off" oninput="syncFecha(this,'fecha-inicio')">
+          <div class="cal-btn" title="Abrir calendario">🗓
+            <input type="date" id="fecha-inicio-picker" class="date-overlay" onchange="pickerToDisplay('fecha-inicio')">
+          </div>
+        </div>
+        <input type="hidden" id="fecha-inicio">
+      </div>
+      <div><label>Fecha fin (domingo)</label>
+        <div class="date-field-wrap">
+          <input type="text" id="fecha-fin-display" placeholder="DD/MM/AAAA" maxlength="10" autocomplete="off" oninput="syncFecha(this,'fecha-fin')">
+          <div class="cal-btn" title="Abrir calendario">🗓
+            <input type="date" id="fecha-fin-picker" class="date-overlay" onchange="pickerToDisplay('fecha-fin')">
+          </div>
+        </div>
+        <input type="hidden" id="fecha-fin">
+      </div>
     </div>
     <div class="form-row" style="max-width:500px">
       <div><label>¿Es semana de inventario? (último día del mes)</label>
-        <select id="es-inventario"><option value="no">No</option><option value="si">Sí — todos entran a las 6 am el último día</option></select>
+        <select id="es-inventario" onchange="toggleInventarioDia()">
+          <option value="no">No</option>
+          <option value="si">Sí — todos entran a las 6 am</option>
+        </select>
+      </div>
+    </div>
+    <div id="row-dia-inventario" style="display:none;max-width:500px">
+      <div class="form-row">
+        <div>
+          <label>Día del inventario</label>
+          <select id="dia-inventario">
+            <option value="lunes">Lunes</option>
+            <option value="martes">Martes</option>
+            <option value="miercoles">Miércoles</option>
+            <option value="jueves">Jueves</option>
+            <option value="viernes">Viernes</option>
+            <option value="sabado">Sábado</option>
+            <option value="domingo">Domingo</option>
+          </select>
+          <div id="inventario-aviso" style="font-size:11px;margin-top:6px"></div>
+        </div>
       </div>
     </div>
     <div class="form-row" style="max-width:500px">
@@ -298,6 +242,45 @@ const HISTORIAL_KEY = 'malla_historial_v1';
 const ROT_KEY = 'malla_rotacion_v1';
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxX9LaIAcbNFhMLWdxZDDY7dY80j8aAupf8DpRVqoK2E6OkIXo6-l2ujbC7uXpqUWg5/exec';
 const SHEETS_URL = 'https://docs.google.com/spreadsheets/d/16LkvSU6xDM6yvaTgbmUaOcSsGrAppBAL0RHpSMcsj7w/edit';
+
+const MESES_CORTO = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const MESES_LARGO = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function fmtCorto(d) {
+  const dt = typeof d === 'string' ? new Date(d + 'T12:00:00') : d;
+  return dt.getDate() + ' ' + MESES_CORTO[dt.getMonth()];
+}
+function fmtLargo(d) {
+  const dt = typeof d === 'string' ? new Date(d + 'T12:00:00') : d;
+  return dt.getDate() + ' de ' + MESES_LARGO[dt.getMonth()] + ' de ' + dt.getFullYear();
+}
+
+function setFecha(hiddenId, iso) {
+  document.getElementById(hiddenId).value = iso;
+  const [y, m, d] = iso.split('-');
+  document.getElementById(hiddenId + '-display').value = d + '/' + m + '/' + y;
+  const picker = document.getElementById(hiddenId + '-picker');
+  if (picker) picker.value = iso;
+}
+function pickerToDisplay(baseId) {
+  const picker = document.getElementById(baseId + '-picker');
+  if (!picker.value) return;
+  const [y, m, d] = picker.value.split('-');
+  document.getElementById(baseId + '-display').value = d + '/' + m + '/' + y;
+  document.getElementById(baseId).value = picker.value;
+}
+function syncFecha(input, hiddenId) {
+  let v = input.value.replace(/[^\d]/g, '');
+  if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
+  if (v.length > 5) v = v.slice(0, 5) + '/' + v.slice(5, 9);
+  input.value = v;
+  const parts = v.split('/');
+  if (parts.length === 3 && parts[2].length === 4) {
+    const iso = parts[2] + '-' + parts[1].padStart(2, '0') + '-' + parts[0].padStart(2, '0');
+    document.getElementById(hiddenId).value = iso;
+  } else {
+    document.getElementById(hiddenId).value = '';
+  }
+}
 
 const TURNOS = {
   '13': {label:'8am-5pm', horas:8, almuerzo:true},
@@ -441,6 +424,7 @@ function renderTurnos() {
 
   list.innerHTML = renderGroup(laborales, 'Turnos laborales') + renderGroup(special, 'Códigos especiales');
 }
+function loadEmpleados() {
   try { const s = localStorage.getItem(EMPLEADOS_KEY); return s ? JSON.parse(s) : null; } catch(e){ return null; }
 }
 function saveEmpleados(emp) {
@@ -547,6 +531,48 @@ function renderEmpleados() {
   document.getElementById('m-activos').textContent = empleados.filter(e=>e.estado==='Activo').length;
 }
 
+function toggleInventarioDia() {
+  const val = document.getElementById('es-inventario').value;
+  const row = document.getElementById('row-dia-inventario');
+  row.style.display = val === 'si' ? 'block' : 'none';
+  if (val === 'si') sugerirDiaInventario();
+}
+
+function sugerirDiaInventario() {
+  const fi = document.getElementById('fecha-inicio').value;
+  const ff = document.getElementById('fecha-fin').value;
+  const aviso = document.getElementById('inventario-aviso');
+  const sel = document.getElementById('dia-inventario');
+  if (!fi) { aviso.textContent = 'Selecciona primero las fechas de la semana.'; aviso.style.color = '#888'; return; }
+
+  const inicio = new Date(fi + 'T12:00:00');
+  const fin    = ff ? new Date(ff + 'T12:00:00') : null;
+  const ultimo = new Date(inicio.getFullYear(), inicio.getMonth() + 1, 0);
+
+  const DIAS_KEY = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
+  const DIAS_ES  = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const diaKey   = DIAS_KEY[ultimo.getDay()];
+
+  const dentroDeSemana = fin ? (ultimo >= inicio && ultimo <= fin) : false;
+
+  if (!dentroDeSemana) {
+    aviso.innerHTML = `El <b>${fmtCorto(ultimo)}</b> (fin de mes) no cae en esta semana. Elige el día manualmente.`;
+    aviso.style.color = '#888';
+    return;
+  }
+
+  if (diaKey === 'domingo') {
+    const sabado = new Date(ultimo); sabado.setDate(ultimo.getDate() - 1);
+    sel.value = 'sabado';
+    aviso.innerHTML = `⚠️ El <b>${fmtCorto(ultimo)}</b> cae en domingo — se sugiere el <b>sábado ${fmtCorto(sabado)}</b>.`;
+    aviso.style.color = '#854F0B';
+  } else {
+    sel.value = diaKey;
+    aviso.innerHTML = `El <b>${fmtCorto(ultimo)}</b> cae en ${DIAS_ES[ultimo.getDay()]}.`;
+    aviso.style.color = '#0F6E56';
+  }
+}
+
 function goToGenerar() {
   const fi = document.getElementById('fecha-inicio').value;
   const ff = document.getElementById('fecha-fin').value;
@@ -556,10 +582,10 @@ function goToGenerar() {
   const inventario = document.getElementById('es-inventario').value;
   const notas = document.getElementById('notas-semana').value;
   const resumen = document.getElementById('config-resumen');
-  resumen.innerHTML = `<b style="font-weight:500">Semana configurada:</b> ${fi} al ${ff}<br>
+  resumen.innerHTML = `<b style="font-weight:500">Semana configurada:</b> ${fmtCorto(fi)} al ${fmtCorto(ff)}<br>
     Rotación Manuel/Yesid: <b>${rotMY === 'A' ? 'Manuel 8am-5pm · Yesid 9am-6pm' : 'Manuel 9am-6pm · Yesid 8am-5pm'}</b><br>
     Rotación Iván/Fabián: <b>${rotIF === 'A' ? 'Iván entra 7am mar/jue' : 'Fabián entra 7am mar/jue'}</b><br>
-    Inventario fin de mes: <b>${inventario === 'si' ? 'Sí — todos entran 6am el último día' : 'No'}</b>
+    Inventario fin de mes: <b>${inventario === 'si' ? `Sí — todos entran 6am el ${document.getElementById('dia-inventario').value}` : 'No'}</b>
     ${notas ? '<br>Notas: ' + notas : ''}`;
   switchTab('generar-ia');
 }
@@ -570,6 +596,7 @@ async function generarMalla() {
   const rotMY = document.getElementById('rot-manuel-yesid').value;
   const rotIF = document.getElementById('rot-ivan-fabian').value;
   const inventario = document.getElementById('es-inventario').value;
+  const diaInv = inventario === 'si' ? document.getElementById('dia-inventario').value : null;
   const notas = document.getElementById('notas-semana').value;
 
   const empActivos = empleados.filter(e => e.estado !== 'Vacante');
@@ -588,7 +615,7 @@ REGLAS OBLIGATORIAS:
 6. De martes a viernes tienen 1 hora de almuerzo (no se cuenta en las 44h)
 7. Los lunes y sábados NO hay hora de almuerzo
 8. El domingo es descanso para todos
-${inventario === 'si' ? '9. INVENTARIO: el último día de la semana todos entran a las 6am (horario especial de inventario)' : ''}
+${inventario === 'si' ? `9. INVENTARIO: el ${diaInv} todos entran a las 6am (turno INVENT — horario especial de inventario, ese día no aplica horario normal)` : ''}
 ${notas ? `NOTAS ESPECIALES: ${notas}` : ''}
 
 FORMATO DE RESPUESTA — responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown, sin explicaciones. El formato exacto es:
@@ -808,7 +835,7 @@ function cerrarEditorTurno() {
 async function aprobarMalla(fi, ff) {
   if (!currentMallaData) return;
   const semana = currentMallaData.semana || (fi + ' - ' + ff);
-  const fechaAprobacion = new Date().toLocaleDateString('es-CO', {day:'numeric', month:'long', year:'numeric'});
+  const fechaAprobacion = fmtLargo(new Date());
   const notas = document.getElementById('notas-semana') ? document.getElementById('notas-semana').value : '';
 
   const entry = {
@@ -1007,11 +1034,14 @@ nextMonday.setDate(today.getDate() + daysToMonday);
 const nextSunday = new Date(nextMonday);
 nextSunday.setDate(nextMonday.getDate() + 6);
 const fmt = d => d.toISOString().split('T')[0];
-document.getElementById('fecha-inicio').value = fmt(nextMonday);
-document.getElementById('fecha-fin').value = fmt(nextSunday);
+setFecha('fecha-inicio', fmt(nextMonday));
+setFecha('fecha-fin', fmt(nextSunday));
 
-const weekStr = nextMonday.toLocaleDateString('es-CO',{day:'numeric',month:'short'}) + ' – ' + nextSunday.toLocaleDateString('es-CO',{day:'numeric',month:'short'});
+const weekStr = fmtCorto(nextMonday) + ' – ' + fmtCorto(nextSunday);
 document.getElementById('m-semana').textContent = weekStr;
+
+const ultimoDiaMes = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+document.getElementById('m-inventario').textContent = fmtCorto(ultimoDiaMes);
 
 renderEmpleados();
 renderHistorial();
