@@ -38,6 +38,8 @@ function doPost(e) {
       return escribirMalla(payload);
     } else if (action === 'getMallas') {
       return getMallas();
+    } else if (action === 'generarMalla') {
+      return generarConIA(payload);
     } else if (action === 'ping') {
       return respuesta({ ok: true, mensaje: 'Conectado correctamente ✓' });
     } else {
@@ -340,6 +342,45 @@ function escribirMalla(payload) {
     hoja: nombreHoja,
     empleados: nombresEnMalla.length
   });
+}
+
+// ============================================================
+// PROXY ANTHROPIC — llama a la IA desde el servidor (sin CORS)
+// La API key se guarda en: Proyecto → Configuración → Propiedades del script
+// Nombre de la propiedad: ANTHROPIC_API_KEY
+// ============================================================
+function generarConIA(payload) {
+  const apiKey = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
+  if (!apiKey) {
+    return respuesta({ ok: false, error: 'API key no configurada. Ve a Proyecto → Configuración → Propiedades del script y agrega ANTHROPIC_API_KEY.' });
+  }
+
+  const body = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1500,
+    messages: [{ role: 'user', content: payload.prompt }]
+  };
+
+  const options = {
+    method: 'post',
+    contentType: 'application/json',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01'
+    },
+    payload: JSON.stringify(body),
+    muteHttpExceptions: true
+  };
+
+  try {
+    const response = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', options);
+    const data = JSON.parse(response.getContentText());
+    if (data.error) return respuesta({ ok: false, error: data.error.message });
+    const text = (data.content && data.content[0]) ? data.content[0].text : '';
+    return respuesta({ ok: true, text: text });
+  } catch(err) {
+    return respuesta({ ok: false, error: 'Error llamando a la IA: ' + err.toString() });
+  }
 }
 
 // ============================================================

@@ -644,17 +644,13 @@ Usa "D" para descanso, "V" para vacaciones, "F" para día de familia, "C" para c
   status.innerHTML = '<span class="spinner"></span> La IA está generando la malla…';
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{role: 'user', content: prompt}]
-      })
+      body: JSON.stringify({ action: 'generarMalla', prompt: prompt })
     });
     const data = await resp.json();
-    const raw = data.content.map(c => c.text || '').join('');
+    if (!data.ok) throw new Error(data.error || 'Error desconocido del servidor');
+    const raw = data.text;
     currentMallaRaw = raw;
     document.getElementById('ai-raw').textContent = raw;
     document.getElementById('gen-output').style.display = 'block';
@@ -669,7 +665,7 @@ Usa "D" para descanso, "V" para vacaciones, "F" para día de familia, "C" para c
       document.getElementById('revisar-content').innerHTML = '<div class="warn-box">La IA respondió pero el formato no es JSON puro. Revisa la respuesta en bruto arriba y pídeme que lo corrija.</div>';
     }
   } catch(e) {
-    status.innerHTML = '<span style="color:#A32D2D">Error al conectar con la IA. Verifica tu conexión.</span>';
+    status.innerHTML = `<span style="color:#A32D2D">Error: ${e.message}</span>`;
   }
   btn.disabled = false;
 }
