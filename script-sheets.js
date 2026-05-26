@@ -345,9 +345,10 @@ function escribirMalla(payload) {
 }
 
 // ============================================================
-// PROXY ANTHROPIC — llama a la IA desde el servidor (sin CORS)
+// PROXY ANTHROPIC — llama a Claude desde el servidor (sin CORS)
 // La API key se guarda en: Proyecto → Configuración → Propiedades del script
 // Nombre de la propiedad: ANTHROPIC_API_KEY
+// Consíguela en: console.anthropic.com → API Keys
 // ============================================================
 function generarConIA(payload) {
   const apiKey = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
@@ -356,8 +357,8 @@ function generarConIA(payload) {
   }
 
   const body = {
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 1500,
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 4096,
     messages: [{ role: 'user', content: payload.prompt }]
   };
 
@@ -374,12 +375,16 @@ function generarConIA(payload) {
 
   try {
     const response = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', options);
-    const data = JSON.parse(response.getContentText());
-    if (data.error) return respuesta({ ok: false, error: data.error.message });
+    const statusCode = response.getResponseCode();
+    const rawText = response.getContentText();
+    Logger.log('HTTP Status: ' + statusCode);
+    Logger.log('Respuesta cruda: ' + rawText);
+    const data = JSON.parse(rawText);
+    if (data.error) return respuesta({ ok: false, error: '[' + statusCode + '] ' + JSON.stringify(data.error) });
     const text = (data.content && data.content[0]) ? data.content[0].text : '';
     return respuesta({ ok: true, text: text });
   } catch(err) {
-    return respuesta({ ok: false, error: 'Error llamando a la IA: ' + err.toString() });
+    return respuesta({ ok: false, error: 'Error llamando a Claude: ' + err.toString() });
   }
 }
 
@@ -393,10 +398,55 @@ function respuesta(obj) {
 }
 
 // ============================================================
-// FUNCIÓN DE PRUEBA — ejecuta esto manualmente para verificar
+// FUNCIONES DE PRUEBA — ejecuta manualmente desde el editor
 // ============================================================
+// Lista los modelos disponibles para tu Anthropic API key
+function testListarModelosAnthropic() {
+  const apiKey = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
+  if (!apiKey) { Logger.log('Falta ANTHROPIC_API_KEY'); return; }
+
+  const options = {
+    method: 'get',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01'
+    },
+    muteHttpExceptions: true
+  };
+
+  const response = UrlFetchApp.fetch('https://api.anthropic.com/v1/models', options);
+  Logger.log('HTTP Status: ' + response.getResponseCode());
+  const data = JSON.parse(response.getContentText());
+
+  if (data.error) { Logger.log('Error: ' + JSON.stringify(data.error)); return; }
+
+  const modelos = (data.data || []).map(m => m.id);
+  Logger.log('Modelos disponibles:\n' + modelos.join('\n'));
+}
+
 function testConexion() {
   const ss = SpreadsheetApp.openById(SHEET_ID);
   Logger.log('Conectado a: ' + ss.getName());
   Logger.log('Hojas existentes: ' + ss.getSheets().map(s => s.getName()).join(', '));
+}
+
+// Simula la llamada que hace index.html — ejecuta esto y revisa el Log
+function testGenerarMalla() {
+  const payload = {
+    action: 'generarMalla',
+    prompt: 'Responde solo con la palabra: OK'
+  };
+
+  // 1. Verifica que el case existe
+  Logger.log('Acción recibida: ' + payload.action);
+
+  // 2. Verifica la API key
+  const apiKey = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
+  Logger.log('ANTHROPIC_API_KEY configurada: ' + (apiKey ? 'SÍ (' + apiKey.substring(0, 10) + '...)' : 'NO — falta configurarla'));
+
+  if (!apiKey) return;
+
+  // 3. Prueba la llamada a Claude
+  const resultado = generarConIA(payload);
+  Logger.log('Respuesta: ' + resultado.getContent());
 }

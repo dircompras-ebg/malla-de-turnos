@@ -20,7 +20,7 @@ E:\Carpeta 2023\Documents\EBG-Develop\
 ## Stack técnico
 - HTML/CSS/JS vanilla — sin frameworks, sin build tools, sin npm
 - localStorage para persistencia en el navegador del coordinador
-- Anthropic API (claude-sonnet-4-20250514) embebida en index.html para generar mallas con IA
+- Anthropic API (claude-haiku-4-5-20251001) como proxy en Apps Script para generar mallas con IA
 - Google Apps Script como backend/API que escribe en Google Sheets
 - GitHub Pages como hosting estático
 
@@ -71,7 +71,7 @@ Usar mensajes descriptivos en español: "fix: corrige bug X", "feat: agrega func
 - La URL del Apps Script (es un endpoint desplegado)
 - El ID del Google Sheets
 - La estructura de HISTORIAL_PRELOADED (son datos históricos reales)
-- El modelo de IA usado (claude-sonnet-4-20250514)
+- El modelo de IA usado (claude-haiku-4-5-20251001 en el Apps Script)
 
 ## Archivo script-sheets.js
 Ubicación: /malla-de-turnos/script-sheets.js

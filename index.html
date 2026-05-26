@@ -455,6 +455,18 @@ let empleados = loadEmpleados() || JSON.parse(JSON.stringify(EMPLEADOS_DEFAULT))
 let historial = loadHistorial();
 let currentMallaData = null;
 let currentMallaRaw = null;
+let mallaCache = {};
+
+function getMallaCacheKey() {
+  const fi  = document.getElementById('fecha-inicio').value;
+  const ff  = document.getElementById('fecha-fin').value;
+  const rotMY = document.getElementById('rot-manuel-yesid').value;
+  const rotIF = document.getElementById('rot-ivan-fabian').value;
+  const inv = document.getElementById('es-inventario').value;
+  const diaInv = inv === 'si' ? document.getElementById('dia-inventario').value : '';
+  const notas  = (document.getElementById('notas-semana').value || '').trim();
+  return [fi, ff, rotMY, rotIF, inv, diaInv, notas].join('|');
+}
 
 function showPanel(name) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('visible'));
@@ -640,6 +652,17 @@ Usa "D" para descanso, "V" para vacaciones, "F" para día de familia, "C" para c
 
   const btn = document.getElementById('btn-generar');
   const status = document.getElementById('gen-status');
+
+  // ── Cache check ──────────────────────────────────────────────────────────
+  const cacheKey = getMallaCacheKey();
+  if (mallaCache[cacheKey]) {
+    currentMallaData = mallaCache[cacheKey];
+    status.innerHTML = '<span style="color:#185FA5">↩ Malla cargada desde caché (sin nuevo consumo de IA)</span>';
+    renderMallaReview(currentMallaData, fi, ff);
+    return;
+  }
+
+  // ── API call ──────────────────────────────────────────────────────────────
   btn.disabled = true;
   status.innerHTML = '<span class="spinner"></span> La IA está generando la malla…';
 
@@ -652,17 +675,22 @@ Usa "D" para descanso, "V" para vacaciones, "F" para día de familia, "C" para c
     if (!data.ok) throw new Error(data.error || 'Error desconocido del servidor');
     const raw = data.text;
     currentMallaRaw = raw;
-    document.getElementById('ai-raw').textContent = raw;
-    document.getElementById('gen-output').style.display = 'block';
-    status.innerHTML = '<span style="color:#0F6E56">✓ Malla generada correctamente</span>';
 
     try {
       const clean = raw.replace(/```json|```/g, '').trim();
       currentMallaData = JSON.parse(clean);
+      // Store in cache only on successful parse
+      mallaCache[cacheKey] = currentMallaData;
+      status.innerHTML = '<span style="color:#0F6E56">✓ Malla generada correctamente</span>';
+      // Auto-navigate to visual review — no extra click needed
       renderMallaReview(currentMallaData, fi, ff);
     } catch(e) {
+      // Parse failed — show raw output so user can diagnose
       currentMallaData = null;
-      document.getElementById('revisar-content').innerHTML = '<div class="warn-box">La IA respondió pero el formato no es JSON puro. Revisa la respuesta en bruto arriba y pídeme que lo corrija.</div>';
+      document.getElementById('ai-raw').textContent = raw;
+      document.getElementById('gen-output').style.display = 'block';
+      status.innerHTML = '<span style="color:#A32D2D">⚠ La IA respondió pero el JSON no es válido — revisa la respuesta en bruto</span>';
+      document.getElementById('revisar-content').innerHTML = '<div class="warn-box">La IA respondió pero el formato no es JSON puro. Revisa la respuesta en bruto arriba y ajusta el prompt o vuelve a intentarlo.</div>';
     }
   } catch(e) {
     status.innerHTML = `<span style="color:#A32D2D">Error: ${e.message}</span>`;
