@@ -26,6 +26,33 @@ const DIA_LABEL = {
   jueves:'Jueves', viernes:'Viernes', sabado:'Sábado', domingo:'Domingo'
 };
 
+// Calcula horas netas (sin almuerzo) igual que el frontend.
+// Siempre recalcula desde entrada/salida para no depender del campo
+// "horas" que la IA a veces reporta en bruto.
+function calcHorasNetas(t) {
+  if (!t) return 0;
+  const cod = String(t.codigo || '');
+  if (['D','V','F','C'].includes(cod)) return 0;
+  if (cod === 'INVENT' || cod === 'INV') return t.horas || 7;
+  const parseH = function(s) {
+    if (!s || s === '-' || s === '?') return null;
+    const m = s.match(/^(\d+)(am|pm)$/i);
+    if (!m) return null;
+    let h = parseInt(m[1]);
+    if (m[2].toLowerCase() === 'pm' && h !== 12) h += 12;
+    if (m[2].toLowerCase() === 'am' && h === 12) h = 0;
+    return h;
+  };
+  const hi = parseH(t.entrada);
+  const hs = parseH(t.salida);
+  if (hi !== null && hs !== null && hs > hi) {
+    return t.almuerzo ? (hs - hi - 1) : (hs - hi);
+  }
+  // Fallback: campo horas, descontando almuerzo si aplica
+  const h = t.horas || 0;
+  return t.almuerzo ? Math.max(0, h - 1) : h;
+}
+
 // ============================================================
 // FUNCIÓN PRINCIPAL — recibe el POST desde la app web
 // ============================================================
@@ -210,7 +237,7 @@ function escribirMalla(payload) {
     ) || { cargo: '' };
 
     let totalHoras = 0;
-    DIAS.forEach(d => { totalHoras += (turnos[d] ? (turnos[d].horas || 0) : 0); });
+    DIAS.forEach(d => { totalHoras += calcHorasNetas(turnos[d]); });
 
     // Nº
     sheet.getRange(fila, 1).setValue(numFila).setHorizontalAlignment('center')
@@ -329,8 +356,8 @@ function escribirMalla(payload) {
   const rangoTabla = sheet.getRange(5, 1, nombresEnMalla.length + 1, 11);
   rangoTabla.setBorder(true, true, true, true, true, true, '#DDDDDD', SpreadsheetApp.BorderStyle.SOLID);
 
-  // Congelar las primeras 3 columnas para scroll horizontal
-  sheet.setFrozenColumns(3);
+  // Congelar solo filas del encabezado (no columnas — las celdas combinadas
+  // del título impiden setFrozenColumns sin generar un error de Sheets)
   sheet.setFrozenRows(5);
 
   // Activar esta hoja

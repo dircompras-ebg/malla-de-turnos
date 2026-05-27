@@ -159,6 +159,20 @@
       </div>
     </div>
     <div class="form-row" style="max-width:500px">
+      <div>
+        <label>Días festivos en esta semana</label>
+        <div id="festivos-days" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+          <label class="day-check"><input type="checkbox" value="lunes"><span>Lun</span></label>
+          <label class="day-check"><input type="checkbox" value="martes"><span>Mar</span></label>
+          <label class="day-check"><input type="checkbox" value="miercoles"><span>Mié</span></label>
+          <label class="day-check"><input type="checkbox" value="jueves"><span>Jue</span></label>
+          <label class="day-check"><input type="checkbox" value="viernes"><span>Vie</span></label>
+          <label class="day-check"><input type="checkbox" value="sabado"><span>Sáb</span></label>
+        </div>
+        <div style="font-size:11px;color:#888;margin-top:5px">Aplica horarios especiales de festivo a Manuel, Yesid, Oscar y Fabián/Iván</div>
+      </div>
+    </div>
+    <div class="form-row" style="max-width:500px">
       <div><label>Notas especiales para esta semana (vacaciones, incapacidades, eventos)</label>
         <input id="notas-semana" placeholder="Ej: Yesid en vacaciones lun-mié · Cristian incapacitado jueves"></div>
     </div>
@@ -466,6 +480,10 @@ function guardarEnCache(key, data) {
   try { localStorage.setItem(MALLA_CACHE_KEY, JSON.stringify(mallaCache)); } catch(e) {}
 }
 
+function getFestivosDias() {
+  return Array.from(document.querySelectorAll('#festivos-days input:checked')).map(cb => cb.value);
+}
+
 function getMallaCacheKey() {
   const fi  = document.getElementById('fecha-inicio').value;
   const ff  = document.getElementById('fecha-fin').value;
@@ -474,7 +492,8 @@ function getMallaCacheKey() {
   const inv = document.getElementById('es-inventario').value;
   const diaInv = inv === 'si' ? document.getElementById('dia-inventario').value : '';
   const notas  = (document.getElementById('notas-semana').value || '').trim();
-  return [fi, ff, rotMY, rotIF, inv, diaInv, notas].join('|');
+  const festivos = getFestivosDias().join(',');
+  return [fi, ff, rotMY, rotIF, inv, diaInv, notas, festivos].join('|');
 }
 
 function showPanel(name) {
@@ -603,10 +622,12 @@ function goToGenerar() {
   const inventario = document.getElementById('es-inventario').value;
   const notas = document.getElementById('notas-semana').value;
   const resumen = document.getElementById('config-resumen');
+  const festivosLabel = getFestivosDias();
   resumen.innerHTML = `<b style="font-weight:500">Semana configurada:</b> ${fmtCorto(fi)} al ${fmtCorto(ff)}<br>
     Rotación Manuel/Yesid: <b>${rotMY === 'A' ? 'Manuel 8am-5pm · Yesid 9am-6pm' : 'Manuel 9am-6pm · Yesid 8am-5pm'}</b><br>
     Rotación Iván/Fabián: <b>${rotIF === 'A' ? 'Iván entra 7am mar/jue' : 'Fabián entra 7am mar/jue'}</b><br>
-    Inventario fin de mes: <b>${inventario === 'si' ? `Sí — todos entran 6am el ${document.getElementById('dia-inventario').value}` : 'No'}</b>
+    Inventario: <b>${inventario === 'si' ? `Sí — todos 6am el ${document.getElementById('dia-inventario').value}` : 'No'}</b><br>
+    Festivos: <b>${festivosLabel.length > 0 ? festivosLabel.join(', ') : 'ninguno'}</b>
     ${notas ? '<br>Notas: ' + notas : ''}`;
   switchTab('generar-ia');
 }
@@ -621,46 +642,75 @@ async function generarMalla() {
   const notas = document.getElementById('notas-semana').value;
 
   const empActivos = empleados.filter(e => e.estado !== 'Vacante');
+  const festivosDias = getFestivosDias(); // días de la semana marcados como festivo
 
-  const prompt = `Eres el sistema de gestión de malla de turnos del Departamento de Abastecimiento de El Buen Gusto. Debes generar la malla de turnos para la semana del ${fi} al ${ff}.
+  // Calcula el día siguiente a cada festivo dentro de la misma semana
+  const DIAS_ORD = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
+  const postFestivos = festivosDias
+    .map(d => { const idx = DIAS_ORD.indexOf(d); return idx >= 0 && idx < 6 ? DIAS_ORD[idx + 1] : null; })
+    .filter(Boolean);
+
+  const prompt = `Eres el sistema de gestión de malla de turnos del Departamento de Abastecimiento de El Buen Gusto. Genera la malla para la semana del ${fi} al ${ff}.
 
 EMPLEADOS ACTIVOS:
-${empActivos.map(e => `- ${e.nombre} (${e.cargo}) · Horario base ${e.entrada}-${e.salida} · Regla: ${e.regla}`).join('\n')}
+${empActivos.map(e => `- ${e.nombre} (${e.cargo}) · Regla: ${e.regla}`).join('\n')}
 
-REGLAS OBLIGATORIAS:
-1. Ningún trabajador puede superar 44 horas laborales a la semana (la hora de almuerzo NO se cuenta)
-2. Oscar Sosa trabaja en jornada de tarde, entrada aproximada 10am-11am, salida 6pm-7pm
-3. Esta semana rotación Manuel/Yesid: ${rotMY === 'A' ? 'Manuel entra 8am-sale 5pm · Yesid entra 9am-sale 6pm' : 'Manuel entra 9am-sale 6pm · Yesid entra 8am-sale 5pm'}
-4. Esta semana rotación Iván/Fabián los martes y jueves: ${rotIF === 'A' ? 'Iván entra a las 7am los martes y jueves' : 'Fabián entra a las 7am los martes y jueves'}
-5. Cristian Medina tiene horario fijo: lun-vie 8am-5pm, sábado 8am-12pm
-6. De martes a viernes tienen 1 hora de almuerzo (NO se cuenta en las 44h — descuéntala del campo "horas")
-7. Los lunes y sábados NO hay hora de almuerzo
-8. El domingo es descanso para todos
-${inventario === 'si' ? `9. DÍA DE INVENTARIO: el ${diaInv} TODOS los empleados usan EXACTAMENTE el código "INVENT" con entrada "6am" y salida "1pm". No uses ningún otro código numérico para ese día. Ejemplo: {"codigo":"INVENT","entrada":"6am","salida":"1pm","horas":7,"almuerzo":false}` : ''}
-${notas ? `NOTAS ESPECIALES: ${notas}` : ''}
+═══ REGLAS OBLIGATORIAS ═══
+1. LÍMITE: Ningún trabajador puede superar 44 horas laborales semanales (almuerzo NO cuenta).
+2. ALMUERZO: De martes a viernes hay 1h almuerzo (NO se suma a las horas). Lunes y sábado NO tienen almuerzo.
+3. DOMINGO: Descanso para todos (código "D").
+4. ROTACIÓN Manuel/Yesid esta semana: ${rotMY === 'A' ? 'Manuel 8am-5pm · Yesid 9am-6pm' : 'Manuel 9am-6pm · Yesid 8am-5pm'} (martes a viernes, con almuerzo).
+5. ROTACIÓN Iván/Fabián mar/jue: ${rotIF === 'A' ? 'Iván entra 7am los martes y jueves' : 'Fabián entra 7am los martes y jueves'}.
+6. CRISTIAN MEDINA — horario fijo SIEMPRE: lun-vie 8am-5pm +alm, sábado 8am-12pm S/A. EXCEPCIÓN: los jueves entra a las 12am (medianoche) con salida ~8am (8h S/A).
 
-REGLA CRÍTICA SOBRE EL CAMPO "horas": SIEMPRE debe ser las horas NETAS trabajadas, sin contar el almuerzo.
-Ejemplos correctos: turno 7am-4pm con almuerzo → horas:8 (no 9). Turno 8am-5pm con almuerzo → horas:8. Turno 9am-6pm con almuerzo → horas:8. Turno 10am-7pm con almuerzo → horas:8. Turno 8am-12pm sin almuerzo → horas:4.
+═══ REGLAS DE LUNES (día normal, sin festivo) ═══
+7. MANUEL CORRO y YESID MORENO los lunes: entran 6am, salen 2pm, SIN almuerzo (8h netas).
+8. OSCAR SOSA los lunes: entra 7am, sale 3pm, SIN almuerzo (8h netas).
+   (Los demás lunes siguen su rotación habitual.)
 
-FORMATO DE RESPUESTA — responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown, sin explicaciones. El formato exacto es:
+═══ HORARIOS FIJOS ESPECIALES ═══
+9. ÁLVARO RAMOS — coordinador, horario especial fijo cada semana:
+   • Lunes: 7am-4pm S/A (8h)   • Martes: 7am-4pm +alm (8h netas)
+   • Miércoles: entrada 2:30am, salida ~10:30am S/A (8h)
+   • Jueves: entrada 12am (medianoche), salida ~8am S/A (8h)
+   • Viernes: 7am-4pm +alm (8h netas)   • Sábado: 8am-12pm S/A (4h)
+10. CRISTIAN MEDINA los jueves: entrada 12am (medianoche), salida ~8am S/A (8h).
+
+═══ REGLAS DE DÍAS FESTIVOS ═══
+${festivosDias.length > 0
+  ? `Días festivos esta semana: ${festivosDias.join(', ')}.
+11. MANUEL CORRO y YESID MORENO en festivo: 4am-12pm SIN almuerzo (8h netas).
+12. OSCAR SOSA en festivo: 5am-1pm SIN almuerzo (8h netas).
+13. FABIÁN CÁRDENAS o IVÁN NIETO en festivo (el que corresponda según rotación): 6am-1pm SIN almuerzo (7h netas).
+14. Día SIGUIENTE a un festivo${postFestivos.length > 0 ? ' (' + postFestivos.join(', ') + ')' : ''}: Manuel Corro y Yesid Moreno entran 7am. Oscar Sosa entra 8am.`
+  : 'Sin días festivos esta semana — aplica reglas normales de lunes.'}
+
+${inventario === 'si' ? `═══ DÍA DE INVENTARIO ═══
+15. El ${diaInv} TODOS los empleados usan código "INVENT": {"codigo":"INVENT","entrada":"6am","salida":"1pm","horas":7,"almuerzo":false}. Sin excepciones.` : ''}
+${notas ? `═══ NOTAS ESPECIALES ═══\n${notas}` : ''}
+
+═══ REGLA CRÍTICA — campo "horas" ═══
+Siempre horas NETAS (sin almuerzo). Ejemplos: 7am-4pm+alm→8h. 8am-5pm+alm→8h. 9am-6pm+alm→8h. 6am-2pm S/A→8h. 4am-12pm S/A→8h. 8am-12pm S/A→4h. 12am-8am S/A→8h.
+
+RESPONDE SOLO con JSON válido, sin markdown ni texto adicional:
 {
-  "semana": "26 May - 1 Jun 2026",
+  "semana": "${fmtCorto(fi)} - ${fmtCorto(ff)} ${new Date(fi+'T12:00:00').getFullYear()}",
   "turnos": {
     "NOMBRE EMPLEADO": {
-      "lunes": {"codigo": "52", "entrada": "7am", "salida": "4pm", "horas": 8, "almuerzo": false},
-      "martes": {"codigo": "52", "entrada": "7am", "salida": "4pm", "horas": 8, "almuerzo": true},
-      "miercoles": {"codigo": "52", "entrada": "7am", "salida": "4pm", "horas": 8, "almuerzo": true},
-      "jueves": {"codigo": "52", "entrada": "7am", "salida": "4pm", "horas": 8, "almuerzo": true},
-      "viernes": {"codigo": "52", "entrada": "7am", "salida": "4pm", "horas": 8, "almuerzo": true},
-      "sabado": {"codigo": "41", "entrada": "8am", "salida": "12pm", "horas": 4, "almuerzo": false},
-      "domingo": {"codigo": "D", "entrada": "-", "salida": "-", "horas": 0, "almuerzo": false},
-      "total_horas": 44
+      "lunes":    {"codigo":"42","entrada":"6am","salida":"2pm","horas":8,"almuerzo":false},
+      "martes":   {"codigo":"52","entrada":"7am","salida":"4pm","horas":8,"almuerzo":true},
+      "miercoles":{"codigo":"52","entrada":"7am","salida":"4pm","horas":8,"almuerzo":true},
+      "jueves":   {"codigo":"52","entrada":"7am","salida":"4pm","horas":8,"almuerzo":true},
+      "viernes":  {"codigo":"52","entrada":"7am","salida":"4pm","horas":8,"almuerzo":true},
+      "sabado":   {"codigo":"41","entrada":"8am","salida":"12pm","horas":4,"almuerzo":false},
+      "domingo":  {"codigo":"D","entrada":"-","salida":"-","horas":0,"almuerzo":false},
+      "total_horas":44
     }
   },
-  "advertencias": [],
-  "resumen": "Texto breve explicando las decisiones tomadas"
+  "advertencias":[],
+  "resumen":"Texto breve"
 }
-Usa "D" para descanso, "V" para vacaciones, "F" para día de familia, "C" para compensatorio, "INVENT" para inventario. El campo "codigo" puede ser un número de turno o un código especial.`;
+Códigos especiales: "D"=Descanso, "V"=Vacaciones, "F"=Día familia, "C"=Compensatorio, "INVENT"=Inventario.`;
 
   const btn = document.getElementById('btn-generar');
   const status = document.getElementById('gen-status');
@@ -941,9 +991,9 @@ function aplicarEdicionTurno() {
     almuerzo: nuevoTurno.almuerzo
   };
 
-  // Recalculate total for this employee
+  // Recalculate total for this employee using net hours (almuerzo excluded)
   const dias = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
-  const total = dias.reduce((s, d) => s + (currentMallaData.turnos[nombre][d]?.horas || 0), 0);
+  const total = dias.reduce((s, d) => s + parsearHorasNetas(currentMallaData.turnos[nombre][d] || {}), 0);
   currentMallaData.turnos[nombre].total_horas = total;
 
   // Re-render the review
