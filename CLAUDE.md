@@ -51,6 +51,13 @@ E:\Carpeta 2023\Documents\EBG-Develop\
 -Manuel corro no puede descansar los dias miercoles y jueves 
 -Laura Garcia y Nohemy descansan los dias martes siempre que hay un dia lunes festivo (esa semana para ellas es de 35 horas laborales)
 - Los dias Lunes festivo Oscar sosa ingresa a las 4:30am con hora de salida a la 1:30pm (turno 9)
+- todos los lunes que no es día festivo los auxiliares logisticos manuel y yesid ingresan a las 6am -2pm sin hora de almuerzo
+- todos los lunes que no sea dia festivo el conductor ingresa en horario de 7am-3pm sin hora de almuerzo
+- los días festivos los auxiliares logisticos manuel corro, yesid moreno ingresan de 4am-1pm
+- los dias siguientes a un festivo los auxiliares logisticos yesid moreno y manuel corro ingresan a las 7am 
+- los días despues de un festivo el conductor oscar sosa ingresa a las 7am 
+- el conductor alvaro ramos tiene turno los dias lunes y martes de 7am-4pm el día miercoles ingresa a las 2:30am, los dias jueves de cada semana ingresa a las 12am 
+- cristian medina los días jueves ingresa a las 12am
 
 
 ## Arquitectura de index.html
@@ -123,14 +130,3 @@ desplegado en el Sheets de El Buen Gusto, versionado aquí para trazabilidad.
 - No uses fetch(), require() ni APIs de browser — solo SpreadsheetApp, Logger, ContentService
 - Cada vez que escribirMalla() se llama, elimina y recrea la hoja si ya existe (idempotente)
 - Las hojas de empleados empiezan en la fila 6 (filas 1-5 son título, semana, notas, vacía, encabezado)
-
-### Nuevas reglas 
-- todos los lunes que no es día festivo los auxiliares logisticos manuel y yesid ingresan a las 6am -2pm sin hora de almuerzo
-- todos los lunes que no sea dia festivo el conductor ingresa en horario de 7am-3pm sin hora de almuerzo
-- los días festivos los auxiliares logisticos manuel corro, yesid moreno ingresan de 4am-12pm
-- los días festivos el conductor Oscar Sosa ingresa de 5am-1pm
-- los dias festivos fabian cardenas se rota con ivan nieto con ingreso de 6am-1pm 
-- los dias siguientes a un festivo los auxiliares logisticos yesid moreno y manuel corro ingresan a las 7am 
-- los días despues de un festivo el conductor oscar sosa ingresa a las 8am 
-- el conductor alvaro ramos tiene turno los dias lunes y martes de 7am-4pm el día miercoles ingresa a las 2:30am, los dias jueves de cada semana ingresa a las 12am 
-- cristian medina los días jueves ingresa a las 12am
