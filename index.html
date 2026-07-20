@@ -26,17 +26,17 @@
 <div id="panel-dashboard" class="panel visible">
   <div class="section-title">Resumen del equipo</div>
   <div class="grid3" style="margin-bottom:20px">
-    <div class="metric"><div class="metric-label">Empleados activos</div><div class="metric-val" id="m-activos">8</div><div class="metric-sub">+ 1 vacante (Analista de compras)</div></div>
+    <div class="metric"><div class="metric-label">Empleados activos</div><div class="metric-val" id="m-activos">10</div><div class="metric-sub">Equipo completo</div></div>
     <div class="metric"><div class="metric-label">Semana actual</div><div class="metric-val" id="m-semana">26 May – 1 Jun</div><div class="metric-sub">2026</div></div>
     <div class="metric"><div class="metric-label">Último inventario</div><div class="metric-val" id="m-inventario">–</div><div class="metric-sub">Fin de mes — horario especial</div></div>
   </div>
   <div class="section-title">Reglas activas del equipo</div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
-    <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Oscar Sosa (Conductor)</b><br>Jornada tarde · 10 am – 7 pm aprox.</div>
+    <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Grupo de rotación de descansos</b><br>Manuel, Yesid, Iván, Fabián y Oscar rotan sábado + día extra entre semana</div>
     <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Manuel Corro ↔ Yesid Moreno</b><br>Rotación semanal 8am-5pm / 9am-6pm</div>
     <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Iván Nieto ↔ Fabián Cárdenas</b><br>Rotación mar/jue · 7 am semana x semana</div>
     <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Cristian Medina</b><br>Horario permanente fijo</div>
-    <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Máximo semanal</b><br>44 h laborales (sin contar almuerzo)</div>
+    <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Máximo semanal</b><br>42 h laborales (sin contar almuerzo)</div>
     <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Almuerzo mar–vie</b><br>1 hora de almuerzo (no contabilizada)</div>
   </div>
   <div class="section-title">Acciones rápidas</div>
@@ -173,6 +173,11 @@
       </div>
     </div>
     <div class="form-row" style="max-width:500px">
+      <div><label><input type="checkbox" id="prox-semana-festivo" style="width:auto;margin-right:6px;vertical-align:middle">La semana SIGUIENTE tiene lunes festivo</label>
+        <div style="font-size:11px;color:#888;margin-top:5px">Si se marca, Laura García y Nohemy trabajan el domingo de esta semana (en vez de descansar) porque descansarán el martes de la semana festiva</div>
+      </div>
+    </div>
+    <div class="form-row" style="max-width:500px">
       <div><label>Notas especiales para esta semana (vacaciones, incapacidades, eventos)</label>
         <input id="notas-semana" placeholder="Ej: Yesid en vacaciones lun-mié · Cristian incapacitado jueves"></div>
     </div>
@@ -234,7 +239,7 @@
   <div class="section-title">Flujo semanal — cómo funciona</div>
   <div class="steps">
     <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">Cada viernes o sábado</div><div class="step-desc">Abre esta app, ve a "Generar malla", configura la semana siguiente con las fechas, rotaciones y notas especiales (vacaciones, incapacidades).</div></div></div>
-    <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Generar con IA</div><div class="step-desc">Haz clic en "Generar malla con IA". En segundos te muestra la malla completa respetando las 44h, rotaciones y todas las reglas del equipo.</div></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Generar con IA</div><div class="step-desc">Haz clic en "Generar malla con IA". En segundos te muestra la malla completa respetando las 42h, rotaciones y todas las reglas del equipo.</div></div></div>
     <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">Revisar y aprobar</div><div class="step-desc">Revisa la tabla visual. Si algo no está bien, pídele corrección a la IA o regresa a ajustar las notas. Si todo está bien, clic en "Aprobar y publicar en Sheets".</div></div></div>
     <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">Publicación automática</div><div class="step-desc">La app envía la malla al Google Sheets automáticamente — se crea una hoja nueva con el nombre de la semana, con colores, cargos y totales de horas. Sin copiar ni pegar nada.</div></div></div>
     <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-title">Compartir con el equipo</div><div class="step-desc">El link de tu Sheets es siempre el mismo. Compártelo en el grupo de WhatsApp como mensaje fijado. Cada semana la nueva pestaña aparece automáticamente y cualquier empleado la ve desde el celular sin necesitar cuenta de Google.</div></div></div>
@@ -322,15 +327,16 @@ const TURNOS = {
 };
 
 const EMPLEADOS_DEFAULT = [
-  {id:1, nombre:'Álvaro Ramos', cargo:'Coordinador / Supervisor', entrada:'7:00 am', salida:'4:00 pm', estado:'Activo', regla:'Horario estándar', color:'#B5D4F4'},
-  {id:2, nombre:'Iván Nieto', cargo:'Auxiliar logístico', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Rotación mar/jue 7am con Fabián · semana por semana', color:'#9FE1CB'},
-  {id:3, nombre:'Fabián Cárdenas', cargo:'Auxiliar logístico', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Rotación mar/jue 7am con Iván · semana por semana', color:'#9FE1CB'},
-  {id:4, nombre:'Yesid Moreno', cargo:'Auxiliar logístico', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Rotación semanal 8am-5pm / 9am-6pm con Manuel', color:'#FAC775'},
-  {id:5, nombre:'Segundo José Briceño', cargo:'Auxiliar logístico', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Horario estándar', color:'#CCC'},
-  {id:6, nombre:'Cristian Medina', cargo:'Auxiliar logístico', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Horario permanente fijo · no rota', color:'#AFA9EC'},
-  {id:7, nombre:'Manuel Corro', cargo:'Auxiliar logístico', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Rotación semanal 8am-5pm / 9am-6pm con Yesid', color:'#FAC775'},
-  {id:8, nombre:'Oscar Sosa', cargo:'Conductor', entrada:'10:00 am', salida:'7:00 pm', estado:'Activo', regla:'Jornada tarde permanente · 10am-7pm aprox.', color:'#F5C4B3'},
-  {id:9, nombre:'Vacante — Analista de compras', cargo:'Analista de compras', entrada:'-', salida:'-', estado:'Vacante', regla:'Reemplaza a Yulieth Andrea Brieño', color:'#F09595'},
+  {id:1, nombre:'Álvaro Ramos', cargo:'Coordinador / Supervisor', entrada:'7:00 am', salida:'4:00 pm', estado:'Activo', regla:'Horario especial fijo: lun/mar 7am-4pm, mié entra 2:30am, jue entra 12am, vie 7am-4pm, sáb 8am-12pm', color:'#B5D4F4'},
+  {id:2, nombre:'Iván Nieto', cargo:'Auxiliar logístico', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Rotación mar/jue 7am con Fabián · grupo rotación descansos · no descansa miércoles', color:'#9FE1CB'},
+  {id:3, nombre:'Fabián Cárdenas', cargo:'Auxiliar logístico', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Rotación mar/jue 7am con Iván · grupo rotación descansos', color:'#9FE1CB'},
+  {id:4, nombre:'Yesid Moreno', cargo:'Auxiliar logístico', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Grupo rotación descansos (sábado + día extra entre semana) · lunes 6am-2pm S/A · festivo 4am-1pm S/A', color:'#FAC775'},
+  {id:5, nombre:'Cristian Medina', cargo:'Líder Procesados', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Horario permanente fijo · no rota · jueves entra 12am', color:'#AFA9EC'},
+  {id:6, nombre:'Manuel Corro', cargo:'Auxiliar logístico', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Grupo rotación descansos (sábado + día extra entre semana) · no descansa miércoles ni jueves · lunes 6am-2pm S/A · festivo 4am-1pm S/A', color:'#FAC775'},
+  {id:7, nombre:'Oscar Sosa', cargo:'Conductor', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Grupo rotación descansos · lunes 7am-3pm S/A · lunes festivo turno 9 (4:30am-1:30pm) · día después de festivo entra 7am', color:'#F5C4B3'},
+  {id:8, nombre:'Lorena Lara', cargo:'Analista de compras', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Horario estándar', color:'#F09595'},
+  {id:9, nombre:'Laura García', cargo:'Operaria Procesados', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Descansa domingo · si el lunes de esta semana es festivo descansa el martes (semana de 35h) · trabaja el domingo cuando la semana siguiente tiene lunes festivo', color:'#D9C2E8'},
+  {id:10, nombre:'Nohemy', cargo:'Operaria Procesados', entrada:'8:00 am', salida:'5:00 pm', estado:'Activo', regla:'Descansa domingo · si el lunes de esta semana es festivo descansa el martes (semana de 35h) · trabaja el domingo cuando la semana siguiente tiene lunes festivo', color:'#E8C2C2'},
 ];
 
 const TURNOS_KEY = 'malla_turnos_cat_v1';
@@ -484,6 +490,44 @@ function getFestivosDias() {
   return Array.from(document.querySelectorAll('#festivos-days input:checked')).map(cb => cb.value);
 }
 
+// Grupo con día de descanso rotativo (sábado + día extra entre semana)
+const GRUPO_ROTACION_DESCANSO = ['Manuel Corro', 'Yesid Moreno', 'Iván Nieto', 'Fabián Cárdenas', 'Oscar Sosa'];
+const DIAS_DESCANSO_EXTRA = ['martes', 'miercoles', 'jueves', 'sabado', 'lunes'];
+
+function normalizarNombre(s) {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().trim();
+}
+
+function getInfoRotacionDescanso(fechaInicioSemana) {
+  const pasadas = historial
+    .filter(h => h.fechaInicio && h.fechaInicio < fechaInicioSemana && h.data && h.data.turnos)
+    .sort((a, b) => (a.fechaInicio < b.fechaInicio ? 1 : -1)); // más reciente primero
+
+  return GRUPO_ROTACION_DESCANSO.map(nombre => {
+    const nombreNorm = normalizarNombre(nombre);
+    let sabado = null, semanasSabado = null;
+    let diaExtra = null, semanasExtra = null, fechaExtra = null;
+    for (let i = 0; i < pasadas.length; i++) {
+      const turnosKey = Object.keys(pasadas[i].data.turnos).find(k => normalizarNombre(k) === nombreNorm);
+      const t = turnosKey ? pasadas[i].data.turnos[turnosKey] : null;
+      if (!t) continue;
+      if (sabado === null && t.sabado && t.sabado.codigo === 'D') {
+        sabado = pasadas[i].fechaInicio; semanasSabado = i + 1;
+      }
+      if (diaExtra === null) {
+        const d = DIAS_DESCANSO_EXTRA.find(dia => dia !== 'sabado' && t[dia] && t[dia].codigo === 'D');
+        if (d) { diaExtra = d; fechaExtra = pasadas[i].fechaInicio; semanasExtra = i + 1; }
+      }
+      if (sabado !== null && diaExtra !== null) break;
+    }
+    return {
+      nombre,
+      sabadoTexto: sabado ? `descansó sábado hace ${semanasSabado} semana(s) (${fmtCorto(sabado)})` : 'sin registro de sábado de descanso reciente',
+      extraTexto: diaExtra ? `descansó su día extra el ${diaExtra} hace ${semanasExtra} semana(s) (${fmtCorto(fechaExtra)})` : 'sin registro de día extra de descanso reciente'
+    };
+  });
+}
+
 function getMallaCacheKey() {
   const fi  = document.getElementById('fecha-inicio').value;
   const ff  = document.getElementById('fecha-fin').value;
@@ -623,11 +667,13 @@ function goToGenerar() {
   const notas = document.getElementById('notas-semana').value;
   const resumen = document.getElementById('config-resumen');
   const festivosLabel = getFestivosDias();
+  const proxSemanaFestivo = document.getElementById('prox-semana-festivo').checked;
   resumen.innerHTML = `<b style="font-weight:500">Semana configurada:</b> ${fmtCorto(fi)} al ${fmtCorto(ff)}<br>
     Rotación Manuel/Yesid: <b>${rotMY === 'A' ? 'Manuel 8am-5pm · Yesid 9am-6pm' : 'Manuel 9am-6pm · Yesid 8am-5pm'}</b><br>
     Rotación Iván/Fabián: <b>${rotIF === 'A' ? 'Iván entra 7am mar/jue' : 'Fabián entra 7am mar/jue'}</b><br>
     Inventario: <b>${inventario === 'si' ? `Sí — todos 6am el ${document.getElementById('dia-inventario').value}` : 'No'}</b><br>
-    Festivos: <b>${festivosLabel.length > 0 ? festivosLabel.join(', ') : 'ninguno'}</b>
+    Festivos: <b>${festivosLabel.length > 0 ? festivosLabel.join(', ') : 'ninguno'}</b><br>
+    Próxima semana con lunes festivo: <b>${proxSemanaFestivo ? 'Sí — Laura García y Nohemy trabajan este domingo' : 'No'}</b>
     ${notas ? '<br>Notas: ' + notas : ''}`;
   switchTab('generar-ia');
 }
@@ -643,6 +689,8 @@ async function generarMalla() {
 
   const empActivos = empleados.filter(e => e.estado !== 'Vacante');
   const festivosDias = getFestivosDias(); // días de la semana marcados como festivo
+  const lunesFestivo = festivosDias.includes('lunes');
+  const proxSemanaFestivo = document.getElementById('prox-semana-festivo').checked;
 
   // Calcula el día siguiente a cada festivo dentro de la misma semana
   const DIAS_ORD = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
@@ -650,47 +698,63 @@ async function generarMalla() {
     .map(d => { const idx = DIAS_ORD.indexOf(d); return idx >= 0 && idx < 6 ? DIAS_ORD[idx + 1] : null; })
     .filter(Boolean);
 
+  const rotacionInfo = getInfoRotacionDescanso(fi);
+
   const prompt = `Eres el sistema de gestión de malla de turnos del Departamento de Abastecimiento de El Buen Gusto. Genera la malla para la semana del ${fi} al ${ff}.
 
 EMPLEADOS ACTIVOS:
 ${empActivos.map(e => `- ${e.nombre} (${e.cargo}) · Regla: ${e.regla}`).join('\n')}
 
 ═══ REGLAS OBLIGATORIAS ═══
-1. LÍMITE: Ningún trabajador puede superar 44 horas laborales semanales (almuerzo NO cuenta).
+1. LÍMITE: Ningún trabajador puede superar 42 horas laborales semanales (almuerzo NO cuenta). EXCEPCIÓN: si esta semana tiene un lunes festivo, Manuel Corro, Yesid Moreno, Iván Nieto, Fabián Cárdenas y Oscar Sosa igual DEBEN completar las 42 horas — el festivo no les descuenta horas de la meta semanal.
 2. ALMUERZO: De martes a viernes hay 1h almuerzo (NO se suma a las horas). Lunes y sábado NO tienen almuerzo.
-3. DOMINGO: Descanso para todos (código "D").
+3. DOMINGO: Descanso para todos (código "D"), EXCEPTO Laura García y Nohemy: ${proxSemanaFestivo ? 'la semana SIGUIENTE tiene lunes festivo, así que ELLAS TRABAJAN este domingo en horario normal en vez de descansar (descansarán el martes de la próxima semana festiva).' : 'descansan el domingo con normalidad (la semana siguiente no tiene lunes festivo).'}
 4. ROTACIÓN Manuel/Yesid esta semana: ${rotMY === 'A' ? 'Manuel 8am-5pm · Yesid 9am-6pm' : 'Manuel 9am-6pm · Yesid 8am-5pm'} (martes a viernes, con almuerzo).
 5. ROTACIÓN Iván/Fabián mar/jue: ${rotIF === 'A' ? 'Iván entra 7am los martes y jueves' : 'Fabián entra 7am los martes y jueves'}.
-6. CRISTIAN MEDINA — horario fijo SIEMPRE: lun-vie 8am-5pm +alm, sábado 8am-12pm S/A. EXCEPCIÓN: los jueves entra a las 12am (medianoche) con salida ~8am (8h S/A).
+6. CRISTIAN MEDINA — horario fijo SIEMPRE: lun-vie 8am-5pm +alm, sábado 8am-12pm S/A. EXCEPCIÓN: los jueves entra a las 12am (medianoche) con salida ~8am (8h S/A). No rota nunca.
+
+═══ GRUPO DE ROTACIÓN DE DESCANSOS — Manuel Corro, Yesid Moreno, Iván Nieto, Fabián Cárdenas, Oscar Sosa ═══
+7. Cada uno de estos 5 tiene, además de su descanso semanal, UN día de descanso ADICIONAL entre semana, que debe caer en martes, miércoles, jueves, sábado o lunes (nunca festivo).
+8. Los sábados de descanso deben ROTAR entre estos 5 para que cada uno descanse un sábado aproximadamente cada 5 semanas. Historial reciente de sábados de descanso:
+${rotacionInfo.map(r => `   • ${r.nombre}: ${r.sabadoTexto}`).join('\n')}
+   → Esta semana, prioriza el sábado de descanso para quien lleve MÁS semanas sin descansar sábado (o sin registro reciente).
+9. Historial reciente del día de descanso adicional entre semana (no sábado), para repartirlo con equidad:
+${rotacionInfo.map(r => `   • ${r.nombre}: ${r.extraTexto}`).join('\n')}
+10. Solo UNA persona de este grupo de 5 puede descansar por día. EXCEPCIÓN: en semanas con algún día festivo, puede haber DOS personas de este grupo descansando el mismo día.
+11. IVÁN NIETO no puede descansar los miércoles (ni como descanso semanal ni como descanso adicional).
+12. MANUEL CORRO no puede descansar los miércoles NI los jueves.
 
 ═══ REGLAS DE LUNES (día normal, sin festivo) ═══
-7. MANUEL CORRO y YESID MORENO los lunes: entran 6am, salen 2pm, SIN almuerzo (8h netas).
-8. OSCAR SOSA los lunes: entra 7am, sale 3pm, SIN almuerzo (8h netas).
-   (Los demás lunes siguen su rotación habitual.)
+13. MANUEL CORRO y YESID MORENO los lunes: entran 6am, salen 2pm, SIN almuerzo (8h netas).
+14. OSCAR SOSA los lunes: entra 7am, sale 3pm, SIN almuerzo (8h netas).
+    (Los demás lunes siguen su rotación habitual.)
 
 ═══ HORARIOS FIJOS ESPECIALES ═══
-9. ÁLVARO RAMOS — coordinador, horario especial fijo cada semana:
+15. ÁLVARO RAMOS — horario especial fijo cada semana:
    • Lunes: 7am-4pm S/A (8h)   • Martes: 7am-4pm +alm (8h netas)
    • Miércoles: entrada 2:30am, salida ~10:30am S/A (8h)
    • Jueves: entrada 12am (medianoche), salida ~8am S/A (8h)
    • Viernes: 7am-4pm +alm (8h netas)   • Sábado: 8am-12pm S/A (4h)
-10. CRISTIAN MEDINA los jueves: entrada 12am (medianoche), salida ~8am S/A (8h).
+16. CRISTIAN MEDINA los jueves: entrada 12am (medianoche), salida ~8am S/A (8h).
 
 ═══ REGLAS DE DÍAS FESTIVOS ═══
 ${festivosDias.length > 0
   ? `Días festivos esta semana: ${festivosDias.join(', ')}.
-11. MANUEL CORRO y YESID MORENO en festivo: 4am-12pm SIN almuerzo (8h netas).
-12. OSCAR SOSA en festivo: 5am-1pm SIN almuerzo (8h netas).
-13. FABIÁN CÁRDENAS o IVÁN NIETO en festivo (el que corresponda según rotación): 6am-1pm SIN almuerzo (7h netas).
-14. Día SIGUIENTE a un festivo${postFestivos.length > 0 ? ' (' + postFestivos.join(', ') + ')' : ''}: Manuel Corro y Yesid Moreno entran 7am. Oscar Sosa entra 8am.`
+17. MANUEL CORRO y YESID MORENO en festivo: 4am-1pm SIN almuerzo (9h netas).
+18. FABIÁN CÁRDENAS o IVÁN NIETO en festivo (el que corresponda según rotación): 6am-1pm SIN almuerzo (7h netas).
+${lunesFestivo
+    ? `19. OSCAR SOSA — el LUNES festivo tiene un horario especial (turno "9"): entra 4:30am, sale 1:30pm, SIN almuerzo (9h netas). Reemplaza su regla normal de festivo solo ese día.`
+    : `19. OSCAR SOSA en festivo: 5am-1pm SIN almuerzo (8h netas).`}
+20. Día SIGUIENTE a un festivo${postFestivos.length > 0 ? ' (' + postFestivos.join(', ') + ')' : ''}: Manuel Corro y Yesid Moreno entran 7am. Oscar Sosa entra 7am.
+${lunesFestivo ? `21. LAURA GARCÍA y NOHEMY descansan el MARTES de esta semana en vez del domingo. Esta semana, para ellas, el total es de 35 horas laborales (no 42).` : ''}`
   : 'Sin días festivos esta semana — aplica reglas normales de lunes.'}
 
-${inventario === 'si' ? `═══ DÍA DE INVENTARIO ═══
-15. El ${diaInv} TODOS los empleados usan código "INVENT": {"codigo":"INVENT","entrada":"6am","salida":"1pm","horas":7,"almuerzo":false}. Sin excepciones.` : ''}
+${inventario === 'si' ? `═══ DÍA DE INVENTARIO (último día del mes) ═══
+22. El ${diaInv} TODOS los empleados usan código "INVENT": {"codigo":"INVENT","entrada":"6am","salida":"1pm","horas":7,"almuerzo":false}. Sin excepciones.` : ''}
 ${notas ? `═══ NOTAS ESPECIALES ═══\n${notas}` : ''}
 
 ═══ REGLA CRÍTICA — campo "horas" ═══
-Siempre horas NETAS (sin almuerzo). Ejemplos: 7am-4pm+alm→8h. 8am-5pm+alm→8h. 9am-6pm+alm→8h. 6am-2pm S/A→8h. 4am-12pm S/A→8h. 8am-12pm S/A→4h. 12am-8am S/A→8h.
+Siempre horas NETAS (sin almuerzo). Ejemplos: 7am-4pm+alm→8h. 8am-5pm+alm→8h. 9am-6pm+alm→8h. 6am-2pm S/A→8h. 4am-1pm S/A→9h. 4:30am-1:30pm S/A→9h. 8am-12pm S/A→4h. 12am-8am S/A→8h.
 
 RESPONDE SOLO con JSON válido, sin markdown ni texto adicional:
 {
@@ -702,15 +766,15 @@ RESPONDE SOLO con JSON válido, sin markdown ni texto adicional:
       "miercoles":{"codigo":"52","entrada":"7am","salida":"4pm","horas":8,"almuerzo":true},
       "jueves":   {"codigo":"52","entrada":"7am","salida":"4pm","horas":8,"almuerzo":true},
       "viernes":  {"codigo":"52","entrada":"7am","salida":"4pm","horas":8,"almuerzo":true},
-      "sabado":   {"codigo":"41","entrada":"8am","salida":"12pm","horas":4,"almuerzo":false},
+      "sabado":   {"codigo":"D","entrada":"-","salida":"-","horas":0,"almuerzo":false},
       "domingo":  {"codigo":"D","entrada":"-","salida":"-","horas":0,"almuerzo":false},
-      "total_horas":44
+      "total_horas":40
     }
   },
   "advertencias":[],
   "resumen":"Texto breve"
 }
-Códigos especiales: "D"=Descanso, "V"=Vacaciones, "F"=Día familia, "C"=Compensatorio, "INVENT"=Inventario.`;
+Códigos especiales: "D"=Descanso, "V"=Vacaciones, "F"=Día familia, "C"=Compensatorio, "INVENT"=Inventario, "9"=Festivo especial Oscar Sosa (4:30am-1:30pm).`;
 
   const btn = document.getElementById('btn-generar');
   const status = document.getElementById('gen-status');
