@@ -29,20 +29,29 @@ E:\Carpeta 2023\Documents\EBG-Develop\
 2. Iván Nieto — Auxiliar logístico
 3. Fabián Cárdenas — Auxiliar logístico
 4. Yesid Moreno — Auxiliar logístico
-5. Segundo José Briceño — Auxiliar logístico
-6. Cristian Medina — Auxiliar logístico
-7. Manuel Corro — Auxiliar logístico
-8. Oscar Sosa — Conductor
-9. Vacante — Analista de compras (reemplaza a Yulieth Andrea Brieño)
+5. Cristian Medina — Lider Procesados
+6. Manuel Corro — Auxiliar logístico
+7. Oscar Sosa — Conductor
+8. Lorena Lara - Analista de compras 
+9. Laura Garcia - Operaria Procesados 
+10. Nohemy - Operaria Procesados 
 
 ## Reglas de negocio
-- Máximo 44 horas laborales semanales por empleado (almuerzo NO cuenta)
-- Oscar Sosa: jornada tarde fija ~10am-7pm
-- Manuel Corro ↔ Yesid Moreno: rotación semanal entre 8am-5pm y 9am-6pm
+- Máximo 42 horas laborales semanales por empleado (almuerzo NO cuenta)
 - Iván Nieto ↔ Fabián Cárdenas: rotación martes/jueves entrando a 7am, semana por semana
-- Cristian Medina: horario permanente fijo, no rota
-- Almuerzo de martes a viernes (1h, no se cuenta en las 44h)
+- Cristian Medina: horario permanente fijo, no rota (8am a 5pm)
+- Almuerzo de martes a viernes (1h, no se cuenta en las 42h)
 - Último día de cada mes: inventario, todos entran 6am (horario especial)
+- las semanas con dias lunes festivo no descuentan de las 42 horas semanales para Manuel Corro, Yesid Umbarila, Ivan Nieto, Fabian Cardenas, Oscar Sosa(siempre cumplir con las 42horas semanales)
+- todos los colaboradores descansan el dia domingo a excepcion de Nohemy y Laura García que trabajan el domingo cuando la siguiente semana tiene lunes festivo
+- Los colaboradores Manuel Corro, Yesid Umbarila, Ivan Nieto, Fabian Cardenas, Oscar Sosa tienen un dia de descanso adicional entre semana que los tomaran entre martes, miercoles, jueves, sabado y lunes cuando no es día festivo 
+- los dias sabados de descanso se deben rotar entre Manuel Corro, Yesid Umbarila, Ivan Nieto, Fabian Cardenas, Oscar Sosa (tener en cuenta el historial de las semanas anteriores para que cada uno descanse un sabado cada 5 semanas) 
+- solo puede descansar una persona por dia de los colaboradores Manuel Corro, Yesid Umbarila, Ivan Nieto, Fabian Cardenas, Oscar Sosa( a exccepcion de las semanas que tienen un día festivo, que tendra días que descansen dos persoans por día)
+- Ivan Nieto no puede descansar los dias miercoles 
+-Manuel corro no puede descansar los dias miercoles y jueves 
+-Laura Garcia y Nohemy descansan los dias martes siempre que hay un dia lunes festivo (esa semana para ellas es de 35 horas laborales)
+- Los dias Lunes festivo Oscar sosa ingresa a las 4:30am con hora de salida a la 1:30pm (turno 9)
+
 
 ## Arquitectura de index.html
 Paneles: dashboard, empleados, turnos, generar, historial, publicar
