@@ -67,6 +67,10 @@ function doPost(e) {
       return getMallas();
     } else if (action === 'generarMalla') {
       return generarConIA(payload);
+    } else if (action === 'guardarConfigEmpleados') {
+      return guardarConfigEmpleados(payload);
+    } else if (action === 'guardarConfigTurnos') {
+      return guardarConfigTurnos(payload);
     } else if (action === 'ping') {
       return respuesta({ ok: true, mensaje: 'Conectado correctamente ✓' });
     } else {
@@ -81,6 +85,9 @@ function doGet(e) {
   const action = e.parameter && e.parameter.action;
   if (action === 'getMallas') return getMallas();
   if (action === 'getMalla') return getMallaDetalle(e.parameter.hoja);
+  if (action === 'getConfigEmpleados') return getConfigEmpleados();
+  if (action === 'getConfigTurnos') return getConfigTurnos();
+  if (action === 'getHistorial') return getHistorial();
   return respuesta({ ok: true, mensaje: 'Malla de Turnos API activa ✓' });
 }
 
@@ -363,6 +370,12 @@ function escribirMalla(payload) {
   // Activar esta hoja
   ss.setActiveSheet(sheet);
 
+  // Además de la hoja visible "Sem ...", deja la malla en bruto (JSON) en una
+  // hoja oculta para que el historial no dependa solo del localStorage del
+  // navegador — ver upsertHistorialJson(). Idempotente por fechaInicio: si ya
+  // existe una entrada para esa semana, se sobreescribe (siempre queda la última).
+  upsertHistorialJson(payload, nombreHoja);
+
   return respuesta({
     ok: true,
     mensaje: 'Malla escrita correctamente en la hoja "' + nombreHoja + '"',
@@ -372,11 +385,241 @@ function escribirMalla(payload) {
 }
 
 // ============================================================
+// HISTORIAL EN BRUTO (JSON) — hoja oculta "Historial_JSON"
+// Es la "base de datos" real del historial: guarda la malla completa
+// estructurada (no solo el texto formateado de la hoja "Sem ..."), para que
+// getInfoRotacionDescanso() y el panel Historial puedan reconstruirla igual
+// que si viniera de localStorage. Upsert por fechaInicio: cada semana tiene
+// como máximo una fila — si se vuelve a generar/aprobar la misma semana, se
+// sobreescribe esa fila en vez de duplicar.
+// ============================================================
+const HISTORIAL_JSON_SHEET = 'Historial_JSON';
+const HISTORIAL_JSON_COLS = ['fechaInicio', 'fechaFin', 'semana', 'aprobada', 'notas', 'malla_json', 'hoja'];
+
+// Los Sheets a veces auto-convierten un string "2026-08-03" en un objeto Date
+// al escribirlo/leerlo. Normalizamos siempre a "YYYY-MM-DD" para comparar bien.
+function normFechaISO(v) {
+  if (v instanceof Date) {
+    const y = v.getFullYear(), m = String(v.getMonth() + 1).padStart(2, '0'), d = String(v.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + d;
+  }
+  return String(v || '');
+}
+
+function upsertHistorialJson(payload, nombreHoja) {
+  const fechaInicio = normFechaISO(payload.fechaInicio);
+  if (!fechaInicio) return; // sin fecha no podemos deduplicar por semana; el cliente siempre debe enviarla
+
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  let sheet = ss.getSheetByName(HISTORIAL_JSON_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(HISTORIAL_JSON_SHEET);
+    sheet.getRange(1, 1, 1, HISTORIAL_JSON_COLS.length).setValues([HISTORIAL_JSON_COLS]);
+    sheet.hideSheet();
+  }
+
+  const lastRow = sheet.getLastRow();
+  let filaExistente = -1;
+  if (lastRow >= 2) {
+    const fechas = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (let i = 0; i < fechas.length; i++) {
+      if (normFechaISO(fechas[i][0]) === fechaInicio) { filaExistente = i + 2; break; }
+    }
+  }
+
+  const fila = [
+    fechaInicio, normFechaISO(payload.fechaFin), payload.semana || '',
+    payload.fechaAprobacion || '', payload.notas || '',
+    JSON.stringify(payload.malla || {}), nombreHoja
+  ];
+
+  if (filaExistente > 0) {
+    sheet.getRange(filaExistente, 1, 1, HISTORIAL_JSON_COLS.length).setValues([fila]);
+  } else {
+    sheet.getRange(sheet.getLastRow() + 1, 1, 1, HISTORIAL_JSON_COLS.length).setValues([fila]);
+  }
+}
+
+function getHistorial() {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName(HISTORIAL_JSON_SHEET);
+  if (!sheet) return respuesta({ ok: true, historial: [] });
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return respuesta({ ok: true, historial: [] });
+
+  const data = sheet.getRange(2, 1, lastRow - 1, HISTORIAL_JSON_COLS.length).getValues();
+  const historial = data
+    .filter(row => row[0])
+    .map(row => {
+      let malla = null;
+      try { malla = JSON.parse(row[5] || 'null'); } catch (e) { malla = null; }
+      const fechaInicio = normFechaISO(row[0]);
+      return {
+        id: fechaInicio, fechaInicio: fechaInicio, fechaFin: normFechaISO(row[1]),
+        semana: row[2], aprobada: row[3], notas: row[4], data: malla, hoja: row[6]
+      };
+    })
+    .filter(h => h.data); // descarta filas con JSON corrupto/vacío
+
+  return respuesta({ ok: true, historial: historial });
+}
+
+// ============================================================
+// CONFIGURACIÓN DE EMPLEADOS — reglas de descanso/horas por persona
+// Se guarda en una hoja oculta "Config_Empleados" para que la
+// configuración no dependa solo del localStorage del navegador
+// del coordinador (que no se sincroniza entre dispositivos).
+// ============================================================
+const CONFIG_EMPLEADOS_SHEET = 'Config_Empleados';
+const CONFIG_EMPLEADOS_COLS = ['id', 'nombre', 'cargo', 'estado', 'entrada', 'salida', 'color', 'regla', 'reglas_json'];
+
+function guardarConfigEmpleados(payload) {
+  const empleadosIn = payload.empleados || [];
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+
+  // Idempotente: elimina y recrea la hoja, igual que escribirMalla()
+  let sheet = ss.getSheetByName(CONFIG_EMPLEADOS_SHEET);
+  if (sheet) ss.deleteSheet(sheet);
+  sheet = ss.insertSheet(CONFIG_EMPLEADOS_SHEET);
+
+  sheet.getRange(1, 1, 1, CONFIG_EMPLEADOS_COLS.length).setValues([CONFIG_EMPLEADOS_COLS]);
+
+  const filas = empleadosIn.map(e => [
+    e.id, e.nombre, e.cargo, e.estado, e.entrada, e.salida,
+    e.color || '', e.regla || '', JSON.stringify(e.reglas || {})
+  ]);
+  if (filas.length) {
+    sheet.getRange(2, 1, filas.length, CONFIG_EMPLEADOS_COLS.length).setValues(filas);
+  }
+
+  sheet.hideSheet(); // hoja de datos internos, no es para lectura manual
+
+  return respuesta({ ok: true, mensaje: 'Configuración de empleados guardada', total: filas.length });
+}
+
+function getConfigEmpleados() {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName(CONFIG_EMPLEADOS_SHEET);
+  if (!sheet) return respuesta({ ok: true, empleados: null }); // aún no se ha guardado ninguna configuración
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return respuesta({ ok: true, empleados: [] });
+
+  const data = sheet.getRange(2, 1, lastRow - 1, CONFIG_EMPLEADOS_COLS.length).getValues();
+  const empleados = data
+    .filter(row => row[1]) // debe tener nombre
+    .map(row => {
+      let reglas = {};
+      try { reglas = JSON.parse(row[8] || '{}'); } catch(e) { reglas = {}; }
+      return {
+        id: row[0], nombre: row[1], cargo: row[2], estado: row[3],
+        entrada: row[4], salida: row[5], color: row[6], regla: row[7], reglas: reglas
+      };
+    });
+
+  return respuesta({ ok: true, empleados: empleados });
+}
+
+// ============================================================
+// CATÁLOGO DE TURNOS — códigos propios (no siguen ningún estándar externo)
+// Se guarda en una hoja oculta "Config_Turnos" por el mismo motivo que
+// Config_Empleados: que no dependa solo del localStorage del coordinador.
+// ============================================================
+const CONFIG_TURNOS_SHEET = 'Config_Turnos';
+const CONFIG_TURNOS_COLS = ['codigo', 'entrada', 'salida', 'horas', 'almuerzo', 'desc'];
+
+function guardarConfigTurnos(payload) {
+  const turnosIn = payload.turnos || [];
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+
+  let sheet = ss.getSheetByName(CONFIG_TURNOS_SHEET);
+  if (sheet) ss.deleteSheet(sheet);
+  sheet = ss.insertSheet(CONFIG_TURNOS_SHEET);
+
+  sheet.getRange(1, 1, 1, CONFIG_TURNOS_COLS.length).setValues([CONFIG_TURNOS_COLS]);
+
+  const filas = turnosIn.map(t => [
+    String(t.codigo), t.entrada, t.salida, t.horas || 0, t.almuerzo ? 'SI' : 'NO', t.desc || ''
+  ]);
+  if (filas.length) {
+    sheet.getRange(2, 1, filas.length, CONFIG_TURNOS_COLS.length).setValues(filas);
+  }
+
+  sheet.hideSheet();
+
+  return respuesta({ ok: true, mensaje: 'Catálogo de turnos guardado', total: filas.length });
+}
+
+function getConfigTurnos() {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName(CONFIG_TURNOS_SHEET);
+  if (!sheet) return respuesta({ ok: true, turnos: null }); // aún no se ha guardado ningún catálogo
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return respuesta({ ok: true, turnos: [] });
+
+  const data = sheet.getRange(2, 1, lastRow - 1, CONFIG_TURNOS_COLS.length).getValues();
+  const turnos = data
+    .filter(row => row[0] !== '' && row[0] !== null)
+    .map(row => ({
+      codigo: String(row[0]), entrada: row[1], salida: row[2],
+      horas: Number(row[3]) || 0, almuerzo: String(row[4]).toUpperCase() === 'SI', desc: row[5] || ''
+    }));
+
+  return respuesta({ ok: true, turnos: turnos });
+}
+
+// ============================================================
 // PROXY ANTHROPIC — llama a Claude desde el servidor (sin CORS)
 // La API key se guarda en: Proyecto → Configuración → Propiedades del script
 // Nombre de la propiedad: ANTHROPIC_API_KEY
 // Consíguela en: console.anthropic.com → API Keys
 // ============================================================
+// ── Schema forzado del JSON de la malla (tool use) ──────────────────────────
+// En vez de confiar en la instrucción de texto "responde solo con JSON" (que
+// a veces la IA rompe agregando prosa antes/después), usamos "tool use" de la
+// API de Anthropic con tool_choice forzado: la API garantiza a nivel de
+// esquema que el bloque tool_use.input tiene esta forma exacta — ya no hay
+// que extraer JSON de un texto libre para el camino feliz.
+const DIA_SCHEMA_MALLA = {
+  type: 'object',
+  required: ['codigo', 'entrada', 'salida', 'horas', 'almuerzo'],
+  properties: {
+    codigo: { type: 'string' },
+    entrada: { type: 'string' },
+    salida: { type: 'string' },
+    horas: { type: 'number' },
+    almuerzo: { type: 'boolean' }
+  }
+};
+
+const MALLA_INPUT_SCHEMA = {
+  type: 'object',
+  required: ['semana', 'turnos', 'advertencias', 'resumen'],
+  properties: {
+    semana: { type: 'string', description: 'Ej: "27 Jul - 2 Ago 2026"' },
+    turnos: {
+      type: 'object',
+      description: 'Una entrada por cada empleado activo (clave = nombre completo), con su horario de lunes a domingo',
+      additionalProperties: {
+        type: 'object',
+        required: ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo', 'total_horas'],
+        properties: {
+          lunes: DIA_SCHEMA_MALLA, martes: DIA_SCHEMA_MALLA, miercoles: DIA_SCHEMA_MALLA, jueves: DIA_SCHEMA_MALLA,
+          viernes: DIA_SCHEMA_MALLA, sabado: DIA_SCHEMA_MALLA, domingo: DIA_SCHEMA_MALLA,
+          total_horas: { type: 'number' }
+        }
+      }
+    },
+    advertencias: {
+      type: 'array', items: { type: 'string' },
+      description: 'Cualquier conflicto, excepción o explicación va AQUÍ como texto — nunca fuera de la estructura'
+    },
+    resumen: { type: 'string' }
+  }
+};
+
 function generarConIA(payload) {
   const apiKey = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
   if (!apiKey) {
@@ -384,9 +627,15 @@ function generarConIA(payload) {
   }
 
   const body = {
-    model: 'claude-haiku-4-5-20251001',
+    model: 'claude-sonnet-5',
     max_tokens: 4096,
-    messages: [{ role: 'user', content: payload.prompt }]
+    messages: [{ role: 'user', content: payload.prompt }],
+    tools: [{
+      name: 'generar_malla',
+      description: 'Registra la malla de turnos semanal generada, con sus advertencias y resumen.',
+      input_schema: MALLA_INPUT_SCHEMA
+    }],
+    tool_choice: { type: 'tool', name: 'generar_malla' }
   };
 
   const options = {
@@ -408,7 +657,15 @@ function generarConIA(payload) {
     Logger.log('Respuesta cruda: ' + rawText);
     const data = JSON.parse(rawText);
     if (data.error) return respuesta({ ok: false, error: '[' + statusCode + '] ' + JSON.stringify(data.error) });
-    const text = (data.content && data.content[0]) ? data.content[0].text : '';
+
+    const toolUse = (data.content || []).find(c => c.type === 'tool_use');
+    if (toolUse && toolUse.input) {
+      return respuesta({ ok: true, malla: toolUse.input });
+    }
+    // Fallback defensivo — con tool_choice forzado esto no debería pasar, pero
+    // si llegara a faltar el tool_use devolvemos el texto plano para que el
+    // cliente intente su lógica de respaldo (extraerJSON) en vez de fallar en seco.
+    const text = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
     return respuesta({ ok: true, text: text });
   } catch(err) {
     return respuesta({ ok: false, error: 'Error llamando a Claude: ' + err.toString() });
