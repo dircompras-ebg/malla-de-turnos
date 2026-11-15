@@ -20,21 +20,26 @@ E:\Carpeta 2023\Documents\EBG-Develop\
 ## Stack técnico
 - HTML/CSS/JS vanilla — sin frameworks, sin build tools, sin npm
 - localStorage para caché rápida/offline en el navegador del coordinador — **no hay base de datos propia**, Google Sheets hace de "base de datos" para lo que necesita sincronizarse entre dispositivos (ver "Persistencia de la configuración de empleados" abajo). El catálogo de turnos y el historial preloaded SÍ siguen siendo solo localStorage + defaults hardcodeados (no se han migrado a Sheets).
-- Anthropic API (claude-haiku-4-5-20251001) como proxy en Apps Script para generar mallas con IA
+- Anthropic API (`claude-sonnet-5-5`) como proxy en Apps Script para generar mallas con IA
 - Google Apps Script como backend/API que escribe en Google Sheets
 - GitHub Pages como hosting estático
 
 ## Empleados activos
-1. Álvaro Ramos — Coordinador/Supervisor
-2. Iván Nieto — Auxiliar logístico
+La lista vigente vive en la hoja `Config_Empleados` del Sheets (se edita en el panel Empleados). Al 15 de noviembre de 2026:
+1. Álvaro Ramos — Conductor
+2. Iván Nieto — Almacenista
 3. Fabián Cárdenas — Auxiliar logístico
 4. Yesid Moreno — Auxiliar logístico
-5. Cristian Medina — Lider Procesados
-6. Manuel Corro — Auxiliar logístico
-7. Oscar Sosa — Conductor
-8. Lorena Lara - Analista de compras 
-9. Laura Garcia - Operaria Procesados 
-10. Nohemy - Operaria Procesados 
+5. Cristian Medina — Líder Procesados
+6. Oscar Sosa — Conductor
+7. Lorena Lara — Analista de compras
+8. Laura García — Operaria Procesados
+9. Nohemy — Operaria Procesados
+10. Joseph Torres — Auxiliar logístico (desde agosto 2026)
+11. Lilia — Operaria Procesados (desde septiembre 2026)
+12. Nicolas Ramirez — Practicante universitario (desde noviembre 2026)
+
+Manuel Corro ya no trabaja en la empresa (último día: 24 de agosto de 2026). Las reglas de abajo que lo nombran se conservan como referencia histórica; el código solo las aplica si la persona sigue activa.
 
 ## Reglas de negocio
 - **PISO mínimo de 42 horas laborales semanales por empleado (almuerzo NO cuenta) — NO es un techo.** La ley colombiana fija 42h como máximo legal, pero en esta empresa esa cifra es el mínimo que cada empleado debe cumplir o superar cada semana. Los turnos son flexibles en horario de entrada/salida (un día puede entrar a las 4am y al siguiente a las 12pm, sin restricción de consistencia); el criterio no es "no pasarse de 42h" sino "asegurar que cada persona llegue a 42h o más", ajustando duración/horario de turnos según haga falta y buscando equidad entre empleados con roles similares. Las horas de recargo (nocturno, festivo, extra) las gestiona RRHH aparte para el pago — no es motivo para recortar turnos por debajo de 42h. Esto aplica también en semanas con festivo (ver regla de abajo). Excepción: Laura García y Nohemy trabajan 35h (no 42h) en las semanas donde descansan el martes por un lunes festivo.
@@ -166,6 +171,32 @@ El coordinador NO usa `turnos.html`: cada semana envía la malla por WhatsApp co
 - **Revisión:** `mallaCtx` guarda fechas/festivos/inventario de la malla que se está revisando (puede venir del Historial, no del formulario). El editor de celda es un `<dialog id="turno-editor">` con botones rápidos (Descanso, Vacaciones…) y buscador (Enter aplica). Las advertencias de la IA van en un `<details>` plegable.
 - **Fixes incluidos:** `diaKeyInventario()` — `#dia-inventario` entrega el nombre del día, no una fecha, así que `normalizarInventario()` antes nunca hacía nada (ahora convierte a INVENT los turnos de ese día, sin tocar D/V/F/C). `upsertHistorialLocal()` evita duplicar una semana al aprobarla dos veces. `autoGuardarMallaPendiente()` usa las fechas de `mallaCtx` (antes podía guardar una malla del historial con las fechas del formulario). La fecha inicial usa hora local (`isoLocal`) en vez de UTC.
 
+### Base de conocimiento aprendida del historial + Sonnet 5.5 (Fase 4 — implementado)
+Análisis del 15 de noviembre de 2026 sobre las mallas finales publicadas (hojas "Sem …"): el coordinador tardaba más de una hora corrigiendo cada malla. Causas encontradas y lo que se hizo:
+
+**Causas**
+1. `aplicarPisoHorasEstricto()` tenía un error: con totales fraccionarios (un turno hasta las 4:30pm, o "12:01am") nunca llegaba a la meta exacta y, en el intento, alternaba +1h/−1h por los días hasta desfigurar la fila completa (150–220 "ajustes" por semana). Afectaba cada semana a Lorena Lara, Cristian Medina y Álvaro Ramos.
+2. Conocimiento desactualizado: notas de empleados viejas en `Config_Empleados` (Oscar "10am-7pm", rotación Manuel/Yesid), reglas con nombres fijos en el prompt (Manuel Corro), horarios fijos de Álvaro/Cristian perdidos al recrear los empleados con otros `id`, y la regla "lunes y sábado nunca tienen almuerzo", que las mallas reales contradicen.
+3. `Historial_JSON` con semanas mal fechadas: mallas reabiertas desde Historial se guardaban con la fecha de la semana siguiente, y las generadas de noche con inicio en martes (ambos errores ya corregidos en la Fase 3).
+
+**Qué se hizo en `index.html`**
+- `HISTORIAL_FINAL_2026`: las 20 mallas finales reales (25 may – 9 nov 2026) en formato compacto, con las novedades de cada semana. `sanearHistorial()` deja una sola entrada por semana real (toma la semana de la etiqueta de la malla, corrige al lunes, y entre versiones gana la aprobada más tarde). Se aplica en `loadHistorial()` y en `cargarHistorialDesdeSheets()`.
+- El prompt (`construirPromptMalla()`) ya no depende solo de reglas escritas a mano: le entrega a la IA las últimas `SEMANAS_EJEMPLO` (6) mallas aprobadas, fila por fila y por persona (`textoHistorialPorPersona()`), más las novedades que el coordinador dio en esas semanas (`textoNovedadesRecientes()`), y si la semana tiene lunes festivo agrega semanas anteriores con lunes festivo. Cada malla que se aprueba alimenta la siguiente generación.
+- Orden de prioridad explícito en el prompt: novedades de la semana > reglas estructuradas (horario fijo, días prohibidos, festivo, inventario) > historial reciente > nota de texto del empleado.
+- Las reglas que nombran personas (lunes 6am, festivos, rotaciones) solo se incluyen si esa persona sigue activa (`activoLlamado()`); el selector de rotación Manuel/Yesid se oculta si alguno no está.
+- `aplicarPisoHorasEstricto()` reescrito: no oscila, completa fracciones de hora, elige el día a ajustar según el historial de la persona (`patronEmpleado()`), no toca los días que la IA marcó como definidos por las novedades (`data.fijados`), máximo 2 h por día y el sábado nunca pasa de 8 h. Deja un renglón de advertencia por persona. `textoPisoHoras()` se eliminó (su contenido está en `construirPromptMalla()`).
+- `metaSemana()`: la meta de una persona baja 7 h por cada día V/F/C, y por cada festivo que descansa si tiene desmarcado "El festivo no reduce su mínimo de horas". La usan el ajuste automático y las advertencias de la revisión.
+- `prepararMallaGenerada()`: normaliza nombres, recalcula horas desde entrada/salida, asigna códigos del catálogo (los turnos sin código quedan como `T`) y convierte "12:01am" en "12am".
+- Paso 2 de Generar: panel "Lo que la IA aprendió de tus mallas aprobadas", y si ya hay una malla con la misma configuración ofrece abrirla o generar una nueva (`generarMalla(true)`). Caché `malla_gen_cache_v2`.
+
+**Qué se hizo en `script-sheets.js`** (requiere pegarlo en Apps Script y reimplementar)
+- `MODELO_IA = 'claude-sonnet-5-5'`, `ESFUERZO_IA = 'medium'`, `MAX_TOKENS_IA = 16000`.
+- Sonnet 5.5 rechaza `tool_choice` forzado (error 400), así que el JSON garantizado ahora se pide con `output_config.format` (JSON Schema, `MALLA_OUTPUT_SCHEMA`). El esquema es compacto: cada día es un texto ("8am-5pm+alm", "D", "INV 6am-1pm") y `expandirMallaCompacta()` lo convierte al formato de siempre; las horas las calcula el script, no el modelo. El razonamiento del modelo va activado por defecto.
+- Maneja `stop_reason` `refusal` y `max_tokens` con mensajes claros. `testGenerarMalla()` prueba la llamada completa desde el editor y registra cuánto tarda — ejecutarla antes de implementar una versión nueva.
+- `calcHorasNetas()` ahora entiende horas con minutos.
+
+**Prueba retrospectiva** (3 semanas pasadas, generando con solo lo que se sabía antes de cada una y comparando con la malla final aprobada): celdas idénticas a la final 20% con el flujo anterior → 40–44% con el nuevo; misma hora de entrada 48% → 70–72%. Hecha con un modelo Sonnet sustituto, no contra el Apps Script real.
+
 ## Arquitectura de turnos.html
 - Página pública sin login, solo lectura
 - Llama al Apps Script con ?action=getMallas para obtener todas las hojas publicadas
@@ -183,7 +214,8 @@ Usar mensajes descriptivos en español: "fix: corrige bug X", "feat: agrega func
 - La URL del Apps Script (es un endpoint desplegado)
 - El ID del Google Sheets
 - La estructura de HISTORIAL_PRELOADED (son datos históricos reales)
-- El modelo de IA usado en `generarConIA()` (Apps Script) — actualmente `claude-sonnet-5` (cambiado desde `claude-haiku-4-5-20251001` por pedido explícito del usuario, ver Fase 2G en "Arquitectura de index.html": Haiku no lograba resolver la aritmética de horas con las restricciones de rotación/descanso simultáneas). Cambiar el modelo otra vez sí requiere preguntar primero — impacta costo por generación.
+- El modelo de IA usado en `generarConIA()` (Apps Script, constante `MODELO_IA`) — actualmente `claude-sonnet-5-5` (cambiado desde `claude-sonnet-5` por pedido explícito del usuario el 15 de noviembre de 2026, ver Fase 4). Cambiar el modelo otra vez sí requiere preguntar primero — impacta costo por generación, y cada modelo tiene requisitos distintos en la petición.
+- `HISTORIAL_FINAL_2026` (son las mallas finales reales de 2026).
 
 ## Archivo script-sheets.js
 Ubicación: /malla-de-turnos/script-sheets.js
