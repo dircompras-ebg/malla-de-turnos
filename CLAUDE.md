@@ -7,7 +7,7 @@ Sistema web de gestión de turnos del Departamento de Abastecimiento de El Buen 
 E:\Carpeta 2023\Documents\EBG-Develop\
 ├── index.html         → App de gestión (solo para el coordinador)
 ├── turnos.html        → Vista pública de empleados (solo lectura)
-├── styles.css         → Estilos del coordinador (index.html) — incluye responsive ≤768px y ≤480px
+├── styles.css         → Estilos del coordinador (index.html) — tokens en :root, responsive ≤960px y ≤560px
 ├── turnos.css         → Estilos de la vista empleados (turnos.html) — incluye responsive ≤600px y ≤380px
 └── (no hay build, no hay framework, todo es HTML/CSS/JS vanilla)
 
@@ -157,6 +157,14 @@ Con el checklist numérico (Fase 2F) el modelo (Claude Haiku 4.5) ya diagnostica
 - `index.html` → `generarMalla()` usa `data.malla` directamente si viene (ya es un objeto, no hace falta `JSON.parse`); si el Apps Script desplegado todavía no tiene esta versión, cae a `data.text` + `extraerJSON()` como antes (compatibilidad hacia atrás durante la transición de despliegue).
 - Esto NO reemplaza `aplicarPisoHorasEstricto()` (Fase 2F) — el schema forzado garantiza la FORMA del JSON, no que la aritmética de horas esté bien. La corrección determinística sigue siendo la garantía real del piso de horas.
 - **Importante:** este cambio también vive en `script-sheets.js`, así que requiere el mismo paso manual de siempre — pegar el archivo actualizado en Apps Script y reimplementar nueva versión — para quedar activo en producción.
+
+### Rediseño de UI + imagen para WhatsApp (Fase 3 — implementado)
+El coordinador NO usa `turnos.html`: cada semana envía la malla por WhatsApp como imagen. Por eso:
+- **Diseño:** riel lateral verde pino (`--pine`) con navegación (Inicio, Generar malla, Historial / Empleados, Catálogo de turnos, Google Sheets), tipografías Barlow Condensed + Barlow Semi Condensed (Google Fonts), ámbar `--tape` solo para la acción principal. Los colores de turno (D/V/F/C/INV/WORK) son los mismos de `COLORES` en `script-sheets.js`. `showPanel()` usa `data-panel` en los botones del nav (ya no índices).
+- **Imagen para WhatsApp:** `dibujarMallaCanvas()` dibuja la malla en un `<canvas>` (sin librerías) con la semana en el encabezado ("16 al 22 de noviembre" + año), fechas por columna, festivo/inventario marcados, cargos y total de horas opcionales, y convenciones al pie. El diálogo `#share-dialog` permite Compartir (Web Share API con archivo, en celular), Copiar imagen (portapapeles, para pegar en WhatsApp Web) o Descargar PNG. Se abre desde Revisar (`abrirShareActual()`), desde cada semana del Historial y desde Inicio (`abrirShareHistorial(idx)`).
+- **Festivos de Colombia:** `festivosColombia(año)` calcula los festivos (fijos, Ley Emiliani y los basados en Pascua). Al cambiar el lunes en Configurar, `onFechaInicioCambiada()` pone el domingo solo y `aplicarDeteccionSemana()` marca festivos, "lunes festivo la semana siguiente" e inventario de fin de mes, con un aviso que el coordinador puede corregir.
+- **Revisión:** `mallaCtx` guarda fechas/festivos/inventario de la malla que se está revisando (puede venir del Historial, no del formulario). El editor de celda es un `<dialog id="turno-editor">` con botones rápidos (Descanso, Vacaciones…) y buscador (Enter aplica). Las advertencias de la IA van en un `<details>` plegable.
+- **Fixes incluidos:** `diaKeyInventario()` — `#dia-inventario` entrega el nombre del día, no una fecha, así que `normalizarInventario()` antes nunca hacía nada (ahora convierte a INVENT los turnos de ese día, sin tocar D/V/F/C). `upsertHistorialLocal()` evita duplicar una semana al aprobarla dos veces. `autoGuardarMallaPendiente()` usa las fechas de `mallaCtx` (antes podía guardar una malla del historial con las fechas del formulario). La fecha inicial usa hora local (`isoLocal`) en vez de UTC.
 
 ## Arquitectura de turnos.html
 - Página pública sin login, solo lectura

@@ -4,338 +4,491 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Malla de Turnos — Dpto. Abastecimiento</title>
+<meta name="theme-color" content="#173A33">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 4v17M3 15h18"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.8c1.7.8 2.7 2.5 3 5.2"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-sheet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h8M12 11v8"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="m21 16-5-5L5 20"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></symbol>
+  </defs>
+</svg>
+
+<div class="shell">
+<aside class="rail">
+  <div class="brand">
+    <div class="brand-name">Malla de turnos</div>
+    <div class="brand-sub">Abastecimiento · El Buen Gusto</div>
+  </div>
+  <nav class="nav" aria-label="Secciones">
+    <button class="active" data-panel="dashboard" onclick="showPanel('dashboard')"><svg><use href="#i-home"/></svg>Inicio</button>
+    <button data-panel="generar" onclick="showPanel('generar')"><svg><use href="#i-grid"/></svg>Generar malla</button>
+    <button data-panel="historial" onclick="showPanel('historial')"><svg><use href="#i-history"/></svg>Historial</button>
+    <div class="nav-group">Configuración</div>
+    <button data-panel="empleados" onclick="showPanel('empleados')"><svg><use href="#i-users"/></svg>Empleados</button>
+    <button data-panel="turnos" onclick="showPanel('turnos')"><svg><use href="#i-clock"/></svg>Catálogo de turnos</button>
+    <button data-panel="publicar" onclick="showPanel('publicar')"><svg><use href="#i-sheet"/></svg>Google Sheets</button>
+  </nav>
+  <div class="rail-foot">Los cambios se guardan en Google Sheets cuando hay conexión.</div>
+</aside>
+
+<main class="main">
 <div class="app">
-<header>
-  <div>
-    <div style="font-size:11px;color:#888;margin-bottom:2px">Dpto. de Abastecimiento · El Buen Gusto</div>
-    <h1>Gestión de Malla de Turnos</h1>
-  </div>
-  <div class="nav">
-    <button class="active" onclick="showPanel('dashboard')">Inicio</button>
-    <button onclick="showPanel('empleados')">Empleados</button>
-    <button onclick="showPanel('turnos')">Turnos</button>
-    <button onclick="showPanel('generar')">Generar malla</button>
-    <button onclick="showPanel('historial')">Historial</button>
-    <button onclick="showPanel('publicar')">Publicar</button>
-  </div>
-</header>
 
-<div id="panel-dashboard" class="panel visible">
-  <div class="section-title">Resumen del equipo</div>
-  <div class="grid3" style="margin-bottom:20px">
-    <div class="metric"><div class="metric-label">Empleados activos</div><div class="metric-val" id="m-activos">10</div><div class="metric-sub">Equipo completo</div></div>
-    <div class="metric"><div class="metric-label">Semana actual</div><div class="metric-val" id="m-semana">26 May – 1 Jun</div><div class="metric-sub">2026</div></div>
-    <div class="metric"><div class="metric-label">Último inventario</div><div class="metric-val" id="m-inventario">–</div><div class="metric-sub">Fin de mes — horario especial</div></div>
+<!-- ═══════════════════════ INICIO ═══════════════════════ -->
+<section id="panel-dashboard" class="panel visible">
+  <div class="hero">
+    <div class="hero-week">
+      <div class="hero-kicker">Próxima semana por planificar</div>
+      <div class="hero-dates" id="hero-dates">–</div>
+      <div class="hero-month" id="hero-month"></div>
+      <div class="hero-flags" id="hero-flags"></div>
+      <div class="btn-row">
+        <button class="primary" onclick="irAGenerarProxima()"><svg><use href="#i-grid"/></svg>Generar malla de esta semana</button>
+      </div>
+      <span id="m-semana" hidden></span>
+    </div>
+    <div class="hero-last" id="hero-last">
+      <div class="label">Última malla publicada</div>
+      <div class="week">–</div>
+    </div>
   </div>
-  <div class="section-title">Reglas activas del equipo</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
-    <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Grupo de rotación de descansos</b><br>Manuel, Yesid, Iván, Fabián y Oscar rotan sábado + día extra entre semana</div>
-    <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Manuel Corro ↔ Yesid Moreno</b><br>Rotación semanal 8am-5pm / 9am-6pm</div>
-    <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Iván Nieto ↔ Fabián Cárdenas</b><br>Rotación mar/jue · 7 am semana x semana</div>
-    <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Cristian Medina</b><br>Horario permanente fijo</div>
-    <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Mínimo semanal</b><br>42 h laborales (sin contar almuerzo) — piso, no techo</div>
-    <div style="background:#f5f4f0;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7"><b style="font-weight:500">Almuerzo mar–vie</b><br>1 hora de almuerzo (no contabilizada)</div>
-  </div>
-  <div class="section-title">Acciones rápidas</div>
-  <div style="display:flex;gap:10px;flex-wrap:wrap">
-    <button class="primary" onclick="showPanel('generar')">Generar malla próxima semana</button>
-    <button class="secondary" onclick="showPanel('empleados')">Ver / editar empleados</button>
-    <button class="secondary" onclick="showPanel('historial')">Ver historial de mallas</button>
-  </div>
-</div>
 
-<div id="panel-empleados" class="panel">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-    <div class="section-title" style="margin:0;border:none;padding:0">Equipo actual</div>
-    <button class="primary" onclick="toggleAddEmp()">+ Agregar empleado</button>
+  <div class="dash-row">
+    <div class="card">
+      <div class="section-title">Equipo</div>
+      <div class="facts">
+        <div class="fact"><span class="fact-label">Empleados activos</span><span class="fact-val" id="m-activos">10</span></div>
+        <div class="fact"><span class="fact-label">Próximo inventario</span><span class="fact-val" id="m-inventario">–</span></div>
+        <div class="fact"><span class="fact-label">Mallas en el historial</span><span class="fact-val" id="m-historial">–</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">Reglas que aplica la IA</div>
+      <ul class="rules">
+        <li><b>Mínimo 42 h por semana</b>Piso, no techo. El almuerzo no cuenta.</li>
+        <li><b>Rotación de descansos</b>Manuel, Yesid, Iván, Fabián y Oscar rotan el sábado y un día extra entre semana.</li>
+        <li><b>Iván ↔ Fabián</b>Se turnan martes y jueves a las 7 am, semana por semana.</li>
+        <li><b>Horarios fijos</b>Álvaro Ramos y Cristian Medina no rotan.</li>
+        <li><b>Lunes festivo</b>Laura y Nohemy descansan el martes (semana de 35 h).</li>
+        <li><b>Inventario</b>El último día del mes todos entran a las 6 am.</li>
+      </ul>
+    </div>
   </div>
-  <div id="add-emp-form" style="display:none;background:#f9f9f8;border-radius:10px;padding:16px;margin-bottom:14px;border:0.5px solid #ddd">
+</section>
+
+<!-- ═══════════════════════ EMPLEADOS ═══════════════════════ -->
+<section id="panel-empleados" class="panel">
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Empleados</h1>
+      <p class="page-desc">Cargo, estado y las reglas de descanso y horas que la IA usa al generar cada malla.</p>
+    </div>
+    <button class="primary" onclick="toggleAddEmp()">Agregar empleado</button>
+  </div>
+
+  <div id="add-emp-form" class="card" style="display:none;margin-bottom:16px">
     <div class="section-title">Nuevo empleado</div>
     <div class="form-row cols2">
-      <div><label>Nombre completo</label><input id="new-nombre" placeholder="Ej: Carlos Pérez"></div>
-      <div><label>Cargo / Rol</label><input id="new-cargo" placeholder="Ej: Auxiliar logístico"></div>
+      <div><label for="new-nombre">Nombre completo</label><input id="new-nombre" placeholder="Ej: Carlos Pérez"></div>
+      <div><label for="new-cargo">Cargo</label><input id="new-cargo" placeholder="Ej: Auxiliar logístico"></div>
     </div>
     <div class="form-row cols3">
-      <div><label>Horario base (entrada)</label><select id="new-entrada">
+      <div><label for="new-entrada">Entrada habitual</label><select id="new-entrada">
         <option>6:00 am</option><option>7:00 am</option><option selected>8:00 am</option><option>9:00 am</option><option>10:00 am</option>
       </select></div>
-      <div><label>Horario base (salida)</label><select id="new-salida">
+      <div><label for="new-salida">Salida habitual</label><select id="new-salida">
         <option>2:00 pm</option><option>3:00 pm</option><option>4:00 pm</option><option selected>5:00 pm</option><option>6:00 pm</option><option>7:00 pm</option>
       </select></div>
-      <div><label>Estado</label><select id="new-estado"><option>Activo</option><option>Vacante</option><option>Incapacidad</option></select></div>
+      <div><label for="new-estado">Estado</label><select id="new-estado"><option>Activo</option><option>Vacante</option><option>Incapacidad</option></select></div>
     </div>
     <div class="form-row">
-      <div><label>Regla especial (opcional)</label><input id="new-regla" placeholder="Ej: Rotación semanal con X · martes/jueves 7am · horario fijo · etc."></div>
+      <div><label for="new-regla">Nota para la IA (opcional)</label><input id="new-regla" placeholder="Ej: Rotación semanal con X · martes y jueves 7am"></div>
     </div>
-    <div style="display:flex;gap:8px">
+    <div class="btn-row">
       <button class="primary" onclick="addEmpleado()">Guardar empleado</button>
       <button class="secondary" onclick="toggleAddEmp()">Cancelar</button>
     </div>
   </div>
 
-  <div id="edit-emp-form" style="display:none;background:#f9f9f8;border-radius:10px;padding:16px;margin-bottom:14px;border:0.5px solid #ddd">
+  <div class="card"><div id="emp-list"></div></div>
+
+  <dialog id="edit-emp-dialog" class="medium" aria-labelledby="edit-emp-title">
+   <div id="edit-emp-form">
     <input type="hidden" id="edit-emp-id">
-    <div class="section-title">Editar empleado — <span id="edit-emp-nombre"></span></div>
-    <div class="form-row cols2">
-      <div><label>Cargo / Rol</label><input id="edit-cargo"></div>
-      <div><label>Estado</label><select id="edit-estado"><option>Activo</option><option>Vacante</option><option>Incapacidad</option></select></div>
-    </div>
-    <div class="form-row">
-      <div><label>Nota / regla especial (texto libre, para referencia)</label><input id="edit-regla"></div>
-    </div>
-
-    <div class="section-title" style="margin-top:14px">Reglas de descanso y horas</div>
-    <div class="info-box" style="margin-bottom:10px;background:#FCEBEB;color:#A32D2D;border-color:#f0c9c9">El mínimo de horas laborales semanales para <b>todos</b> los empleados es <b>42h</b>. Este número es un piso, no un techo — solo bájalo si tienes una excepción real y autorizada (ej. Laura García / Nohemy en semana con festivo).</div>
-
-    <div class="form-row cols2">
-      <div><label><input type="checkbox" id="edit-descansa-domingo"> Descansa todos los domingos</label></div>
-      <div><label>Mínimo de horas laborales semanales</label><input type="number" id="edit-min-horas" min="1" max="60" value="42"></div>
-    </div>
-    <div class="form-row">
-      <div><label><input type="checkbox" id="edit-min-aplica-festivo"> El mínimo aplica igual en semanas con día festivo (el festivo NO reduce la meta)</label></div>
-    </div>
-
-    <div class="form-row">
-      <div><label><input type="checkbox" id="edit-tiene-descanso-adicional" onchange="toggleEditDescansoAdicional()"> Tiene un día de descanso adicional entre semana (aparte del domingo)</label></div>
-    </div>
-    <div id="edit-descanso-adicional-fields" style="display:none;padding:10px;background:#fff;border-radius:8px;border:0.5px solid #e5e5e0;margin-bottom:10px">
-      <label style="display:block;margin-bottom:6px">¿En qué días puede caer ese descanso adicional?</label>
-      <div id="edit-dias-permitidos" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px"></div>
-      <label style="display:block;margin-bottom:6px">Días en los que NUNCA puede descansar (ningún tipo de descanso)</label>
-      <div id="edit-dias-prohibidos" style="display:flex;gap:12px;flex-wrap:wrap"></div>
-    </div>
-
-    <div class="form-row">
-      <div><label>Grupo de rotación de descanso (empleados que reparten sábados/día extra entre ellos)</label>
-        <input id="edit-grupo-rotacion" list="grupos-existentes" placeholder="Ej: logistica-descanso (déjalo vacío si no rota con nadie)">
-        <datalist id="grupos-existentes"></datalist>
+    <div class="dlg-head">
+      <div>
+        <div class="dlg-title" id="edit-emp-title"><span id="edit-emp-nombre"></span></div>
+        <div class="dlg-sub">Reglas de descanso, horas y horario fijo</div>
       </div>
+      <button class="dlg-close" onclick="cerrarEdicionEmpleado()" aria-label="Cerrar"><svg width="18" height="18"><use href="#i-x"/></svg></button>
     </div>
-
-    <div class="form-row">
-      <div><label><input type="checkbox" id="edit-excepcion-festivo" onchange="toggleEditExcepcionFestivo()"> Tiene excepción de horas en semana con festivo (caso especial, como Laura García / Nohemy)</label></div>
-    </div>
-    <div id="edit-excepcion-festivo-fields" style="display:none;padding:10px;background:#fff;border-radius:8px;border:0.5px solid #e5e5e0">
+    <div class="dlg-body">
       <div class="form-row cols2">
-        <div><label>Día de descanso alternativo esa semana</label>
-          <select id="edit-dia-alternativo">
-            <option value="lunes">Lunes</option><option value="martes">Martes</option><option value="miercoles">Miércoles</option>
-            <option value="jueves">Jueves</option><option value="viernes">Viernes</option><option value="sabado">Sábado</option>
-          </select>
+        <div><label for="edit-cargo">Cargo</label><input id="edit-cargo"></div>
+        <div><label for="edit-estado">Estado</label><select id="edit-estado"><option>Activo</option><option>Vacante</option><option>Incapacidad</option></select></div>
+      </div>
+      <div class="form-row">
+        <div><label for="edit-regla">Nota para la IA (texto libre)</label><input id="edit-regla"></div>
+      </div>
+
+      <div class="fieldset-title">Descansos y horas</div>
+      <div class="form-row cols2">
+        <div><label for="edit-min-horas">Mínimo de horas por semana</label><input type="number" id="edit-min-horas" min="1" max="60" value="42">
+          <div class="hint">42 h es el piso para todos. Bájalo solo con una excepción autorizada.</div></div>
+        <div style="display:flex;flex-direction:column;gap:12px;padding-top:28px">
+          <label><input type="checkbox" id="edit-descansa-domingo"> Descansa todos los domingos</label>
+          <label><input type="checkbox" id="edit-min-aplica-festivo"> El festivo no reduce su mínimo de horas</label>
         </div>
-        <div><label>Horas laborales esa semana (excepción)</label><input type="number" id="edit-horas-excepcion" min="1" max="60" value="35"></div>
+      </div>
+
+      <div class="form-row">
+        <label><input type="checkbox" id="edit-tiene-descanso-adicional" onchange="toggleEditDescansoAdicional()"> Tiene un día de descanso adicional entre semana</label>
+      </div>
+      <div id="edit-descanso-adicional-fields" class="subform" style="display:none">
+        <label>Días en los que puede tomar ese descanso</label>
+        <div id="edit-dias-permitidos" class="chips rest" style="margin-bottom:14px"></div>
+        <label>Días en los que nunca puede descansar</label>
+        <div id="edit-dias-prohibidos" class="chips never"></div>
+      </div>
+
+      <div class="form-row">
+        <div><label for="edit-grupo-rotacion">Grupo de rotación de descansos</label>
+          <input id="edit-grupo-rotacion" list="grupos-existentes" placeholder="Vacío si no rota con nadie">
+          <datalist id="grupos-existentes"></datalist>
+          <div class="hint">Quienes tengan el mismo grupo se reparten los sábados y el día extra.</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label><input type="checkbox" id="edit-excepcion-festivo" onchange="toggleEditExcepcionFestivo()"> Trabaja menos horas en semana con lunes festivo (caso Laura y Nohemy)</label>
+      </div>
+      <div id="edit-excepcion-festivo-fields" class="subform" style="display:none">
+        <div class="form-row cols2" style="margin:0">
+          <div><label for="edit-dia-alternativo">Día de descanso esa semana</label>
+            <select id="edit-dia-alternativo">
+              <option value="lunes">Lunes</option><option value="martes">Martes</option><option value="miercoles">Miércoles</option>
+              <option value="jueves">Jueves</option><option value="viernes">Viernes</option><option value="sabado">Sábado</option>
+            </select>
+          </div>
+          <div><label for="edit-horas-excepcion">Horas esa semana</label><input type="number" id="edit-horas-excepcion" min="1" max="60" value="35"></div>
+        </div>
+      </div>
+
+      <div class="fieldset-title">Horario fijo semanal</div>
+      <div class="form-row">
+        <label><input type="checkbox" id="edit-horario-fijo-activo" onchange="toggleEditHorarioFijo()"> Siempre trabaja el mismo horario (no rota)</label>
+      </div>
+      <div id="edit-horario-fijo-fields" class="subform" style="display:none">
+        <div class="hint" style="margin:0 0 10px">Escribe la hora como 7am, 2:30am o 12am. Las horas netas se calculan solas.</div>
+        <div id="edit-horario-fijo-grid"></div>
+        <div style="margin-top:10px;font-size:15px">Total semanal: <b id="edit-horario-fijo-total">0h</b></div>
       </div>
     </div>
-
-    <div class="section-title" style="margin-top:14px">Horario fijo semanal</div>
-    <div class="form-row">
-      <div><label><input type="checkbox" id="edit-horario-fijo-activo" onchange="toggleEditHorarioFijo()"> Tiene horario fijo semanal (no rota, ignora rotaciones y grupo de descanso)</label></div>
-    </div>
-    <div id="edit-horario-fijo-fields" style="display:none;padding:10px;background:#fff;border-radius:8px;border:0.5px solid #e5e5e0;margin-bottom:10px">
-      <div class="info-box" style="margin-bottom:10px">Define entrada y salida de cada día (ej: 7am, 2:30am, 12am). Marca "Descansa" si ese día no trabaja. Las horas netas se calculan solas.</div>
-      <div id="edit-horario-fijo-grid"></div>
-      <div style="margin-top:8px;font-size:12px;color:#555">Total semanal: <b id="edit-horario-fijo-total">0h</b></div>
-    </div>
-
-    <div style="display:flex;gap:8px;margin-top:14px">
-      <button class="primary" onclick="guardarEdicionEmpleado()">Guardar cambios</button>
+    <div class="dlg-foot">
       <button class="secondary" onclick="cerrarEdicionEmpleado()">Cancelar</button>
+      <button class="primary" onclick="guardarEdicionEmpleado()">Guardar cambios</button>
     </div>
-  </div>
+   </div>
+  </dialog>
+</section>
 
-  <div id="emp-list"></div>
-</div>
-
-<div id="panel-turnos" class="panel">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-    <div class="section-title" style="margin:0;border:none;padding:0">Catálogo de turnos</div>
-    <button class="primary" onclick="toggleAddTurno()">+ Nuevo turno</button>
+<!-- ═══════════════════════ TURNOS ═══════════════════════ -->
+<section id="panel-turnos" class="panel">
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Catálogo de turnos</h1>
+      <p class="page-desc">Los códigos son internos. En la imagen de la malla el equipo ve la hora de entrada, la de salida y si tiene almuerzo.</p>
+    </div>
+    <button class="primary" onclick="toggleAddTurno()">Nuevo turno</button>
   </div>
-  <div class="info-box" style="margin-bottom:14px">Los códigos de turno son internos — tú los ves en la gestión pero los empleados ven la hora de entrada, salida y si incluye almuerzo.</div>
-  <div style="margin-bottom:14px">
-    <input id="turnos-search" type="text" placeholder="Buscar por código, hora o descripción (ej: 7am, 8h, +alm)" style="width:100%" oninput="renderTurnos()">
-  </div>
-  <div id="add-turno-form" style="display:none;background:#f9f9f8;border-radius:10px;padding:16px;margin-bottom:14px;border:0.5px solid #ddd">
+  <div id="add-turno-form" class="card" style="display:none;margin-bottom:16px">
     <div class="section-title">Nuevo turno</div>
     <div class="form-row cols3">
-      <div><label>Código</label><input id="nt-codigo" placeholder="Ej: 13, T1, MAÑANA"></div>
-      <div><label>Entrada</label><input id="nt-entrada" placeholder="Ej: 8am"></div>
-      <div><label>Salida</label><input id="nt-salida" placeholder="Ej: 5pm"></div>
+      <div><label for="nt-codigo">Código</label><input id="nt-codigo" placeholder="Ej: 13, T1"></div>
+      <div><label for="nt-entrada">Entrada</label><input id="nt-entrada" placeholder="Ej: 8am"></div>
+      <div><label for="nt-salida">Salida</label><input id="nt-salida" placeholder="Ej: 5pm"></div>
     </div>
     <div class="form-row cols3">
-      <div><label>Horas laborales</label><input id="nt-horas" type="number" min="1" max="12" placeholder="8"></div>
-      <div><label>¿Incluye almuerzo?</label><select id="nt-almuerzo"><option value="no">No (S/A)</option><option value="si">Sí (+1h almuerzo)</option></select></div>
-      <div><label>Descripción</label><input id="nt-desc" placeholder="Ej: Turno estándar mañana"></div>
+      <div><label for="nt-horas">Horas laborales</label><input id="nt-horas" type="number" min="1" max="12" placeholder="8"></div>
+      <div><label for="nt-almuerzo">Almuerzo</label><select id="nt-almuerzo"><option value="no">Sin almuerzo</option><option value="si">Con almuerzo (+1 h)</option></select></div>
+      <div><label for="nt-desc">Descripción</label><input id="nt-desc" placeholder="Ej: Turno estándar mañana"></div>
     </div>
-    <div style="display:flex;gap:8px">
+    <div class="btn-row">
       <button class="primary" onclick="addTurno()">Guardar turno</button>
       <button class="secondary" onclick="toggleAddTurno()">Cancelar</button>
     </div>
   </div>
-  <div id="turnos-list"></div>
-</div>
+  <div class="card">
+    <div style="margin-bottom:16px">
+      <label for="turnos-search">Buscar turno</label>
+      <input id="turnos-search" type="search" placeholder="Código, hora o duración. Ej: 7am 8h" oninput="renderTurnos()">
+    </div>
+    <div id="turnos-list"></div>
+  </div>
+</section>
 
-<div id="panel-generar" class="panel">
-  <div class="tab-bar">
-    <button class="tab active" onclick="switchTab('config')">1 · Configurar</button>
-    <button class="tab" onclick="switchTab('generar-ia')">2 · Generar con IA</button>
-    <button class="tab" onclick="switchTab('revisar')">3 · Revisar y aprobar</button>
+<!-- ═══════════════════════ GENERAR ═══════════════════════ -->
+<section id="panel-generar" class="panel">
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Generar malla</h1>
+      <p class="page-desc">Configura la semana, deja que la IA arme la malla y ajusta lo que haga falta antes de publicarla.</p>
+    </div>
+  </div>
+  <div class="tab-bar" role="tablist">
+    <button class="tab active" onclick="switchTab('config')"><span class="n">1</span>Configurar semana</button>
+    <button class="tab" onclick="switchTab('generar-ia')"><span class="n">2</span>Generar con IA</button>
+    <button class="tab" onclick="switchTab('revisar')"><span class="n">3</span>Revisar y compartir</button>
   </div>
 
   <div id="tab-config">
-    <div class="section-title">Semana a planificar</div>
-    <div class="form-row cols2" style="max-width:500px">
-      <div><label>Fecha inicio (lunes)</label>
-        <div class="date-field-wrap">
-          <input type="text" id="fecha-inicio-display" placeholder="DD/MM/AAAA" maxlength="10" autocomplete="off" oninput="syncFecha(this,'fecha-inicio')">
-          <div class="cal-btn" title="Abrir calendario">🗓
-            <input type="date" id="fecha-inicio-picker" class="date-overlay" onchange="pickerToDisplay('fecha-inicio')">
+    <div class="detect-note" id="detect-note"></div>
+    <div class="config-grid">
+      <div class="card">
+        <div class="section-title">Semana</div>
+        <div class="week-pick"><span class="wk" id="config-week-label">–</span></div>
+        <div class="date-pair">
+          <div><label for="fecha-inicio-display">Lunes</label>
+            <div class="date-field-wrap">
+              <input type="text" id="fecha-inicio-display" placeholder="DD/MM/AAAA" maxlength="10" autocomplete="off" inputmode="numeric" oninput="syncFecha(this,'fecha-inicio')">
+              <div class="cal-btn" title="Abrir calendario"><svg><use href="#i-cal"/></svg>
+                <input type="date" id="fecha-inicio-picker" class="date-overlay" aria-label="Elegir lunes" onchange="pickerToDisplay('fecha-inicio')">
+              </div>
+            </div>
+            <input type="hidden" id="fecha-inicio">
+          </div>
+          <div><label for="fecha-fin-display">Domingo</label>
+            <div class="date-field-wrap">
+              <input type="text" id="fecha-fin-display" placeholder="DD/MM/AAAA" maxlength="10" autocomplete="off" inputmode="numeric" oninput="syncFecha(this,'fecha-fin')">
+              <div class="cal-btn" title="Abrir calendario"><svg><use href="#i-cal"/></svg>
+                <input type="date" id="fecha-fin-picker" class="date-overlay" aria-label="Elegir domingo" onchange="pickerToDisplay('fecha-fin')">
+              </div>
+            </div>
+            <input type="hidden" id="fecha-fin">
           </div>
         </div>
-        <input type="hidden" id="fecha-inicio">
-      </div>
-      <div><label>Fecha fin (domingo)</label>
-        <div class="date-field-wrap">
-          <input type="text" id="fecha-fin-display" placeholder="DD/MM/AAAA" maxlength="10" autocomplete="off" oninput="syncFecha(this,'fecha-fin')">
-          <div class="cal-btn" title="Abrir calendario">🗓
-            <input type="date" id="fecha-fin-picker" class="date-overlay" onchange="pickerToDisplay('fecha-fin')">
+        <div class="hint">Al cambiar el lunes, el domingo se ajusta solo.</div>
+
+        <div class="fieldset-title">Festivos e inventario</div>
+        <div class="form-row">
+          <div>
+            <label>Días festivos de esta semana</label>
+            <div id="festivos-days" class="chips">
+              <label class="day-check"><input type="checkbox" value="lunes"><span>Lun</span></label>
+              <label class="day-check"><input type="checkbox" value="martes"><span>Mar</span></label>
+              <label class="day-check"><input type="checkbox" value="miercoles"><span>Mié</span></label>
+              <label class="day-check"><input type="checkbox" value="jueves"><span>Jue</span></label>
+              <label class="day-check"><input type="checkbox" value="viernes"><span>Vie</span></label>
+              <label class="day-check"><input type="checkbox" value="sabado"><span>Sáb</span></label>
+            </div>
+            <div class="hint">Activa los horarios de festivo de Manuel, Yesid, Oscar, Iván y Fabián.</div>
           </div>
         </div>
-        <input type="hidden" id="fecha-fin">
+        <div class="form-row">
+          <label><input type="checkbox" id="prox-semana-festivo"> La semana siguiente empieza con lunes festivo
+          </label>
+          <div class="hint" style="margin-top:-6px;padding-left:26px">Laura García y Nohemy trabajan este domingo.</div>
+        </div>
+        <div class="form-row">
+          <div><label for="es-inventario">Inventario de fin de mes</label>
+            <select id="es-inventario" onchange="toggleInventarioDia()">
+              <option value="no">No hay inventario esta semana</option>
+              <option value="si">Sí, todos entran a las 6 am</option>
+            </select>
+          </div>
+        </div>
+        <div id="row-dia-inventario" style="display:none">
+          <div class="form-row">
+            <div>
+              <label for="dia-inventario">Día del inventario</label>
+              <select id="dia-inventario">
+                <option value="lunes">Lunes</option>
+                <option value="martes">Martes</option>
+                <option value="miercoles">Miércoles</option>
+                <option value="jueves">Jueves</option>
+                <option value="viernes">Viernes</option>
+                <option value="sabado">Sábado</option>
+                <option value="domingo">Domingo</option>
+              </select>
+              <div id="inventario-aviso" class="hint"></div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="form-row" style="max-width:500px">
-      <div><label>¿Es semana de inventario? (último día del mes)</label>
-        <select id="es-inventario" onchange="toggleInventarioDia()">
-          <option value="no">No</option>
-          <option value="si">Sí — todos entran a las 6 am</option>
-        </select>
-      </div>
-    </div>
-    <div id="row-dia-inventario" style="display:none;max-width:500px">
-      <div class="form-row">
-        <div>
-          <label>Día del inventario</label>
-          <select id="dia-inventario">
-            <option value="lunes">Lunes</option>
-            <option value="martes">Martes</option>
-            <option value="miercoles">Miércoles</option>
-            <option value="jueves">Jueves</option>
-            <option value="viernes">Viernes</option>
-            <option value="sabado">Sábado</option>
-            <option value="domingo">Domingo</option>
-          </select>
-          <div id="inventario-aviso" style="font-size:11px;margin-top:6px"></div>
+
+      <div class="card">
+        <div class="section-title">Rotaciones</div>
+        <div class="form-row">
+          <div><label for="rot-manuel-yesid">Manuel Corro y Yesid Moreno</label>
+            <select id="rot-manuel-yesid">
+              <option value="A">Manuel 8am–5pm · Yesid 9am–6pm</option>
+              <option value="B">Manuel 9am–6pm · Yesid 8am–5pm</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div><label for="rot-ivan-fabian">Martes y jueves a las 7 am</label>
+            <select id="rot-ivan-fabian">
+              <option value="A">Le toca a Iván Nieto</option>
+              <option value="B">Le toca a Fabián Cárdenas</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="fieldset-title">Novedades de la semana</div>
+        <div class="form-row">
+          <div><label for="notas-semana">Vacaciones, incapacidades o eventos</label>
+            <input id="notas-semana" placeholder="Ej: Yesid en vacaciones lun-mié · Cristian incapacitado jueves"></div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label>Horas extra autorizadas</label>
+            <div id="horas-extra-list"></div>
+            <button class="secondary sm" type="button" onclick="agregarHorasExtra()">Agregar horas extra</button>
+            <div class="hint">Sin horas extra, todos quedan exactamente en su mínimo (42 h o el que tengan configurado).</div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="form-row" style="max-width:500px">
-      <div>
-        <label>Días festivos en esta semana</label>
-        <div id="festivos-days" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
-          <label class="day-check"><input type="checkbox" value="lunes"><span>Lun</span></label>
-          <label class="day-check"><input type="checkbox" value="martes"><span>Mar</span></label>
-          <label class="day-check"><input type="checkbox" value="miercoles"><span>Mié</span></label>
-          <label class="day-check"><input type="checkbox" value="jueves"><span>Jue</span></label>
-          <label class="day-check"><input type="checkbox" value="viernes"><span>Vie</span></label>
-          <label class="day-check"><input type="checkbox" value="sabado"><span>Sáb</span></label>
-        </div>
-        <div style="font-size:11px;color:#888;margin-top:5px">Aplica horarios especiales de festivo a Manuel, Yesid, Oscar y Fabián/Iván</div>
-      </div>
+    <div class="btn-row" style="margin-top:18px">
+      <button class="primary" onclick="goToGenerar()">Continuar</button>
     </div>
-    <div class="form-row" style="max-width:500px">
-      <div><label><input type="checkbox" id="prox-semana-festivo" style="width:auto;margin-right:6px;vertical-align:middle">La semana SIGUIENTE tiene lunes festivo</label>
-        <div style="font-size:11px;color:#888;margin-top:5px">Si se marca, Laura García y Nohemy trabajan el domingo de esta semana (en vez de descansar) porque descansarán el martes de la semana festiva</div>
-      </div>
-    </div>
-    <div class="form-row" style="max-width:500px">
-      <div><label>Notas especiales para esta semana (vacaciones, incapacidades, eventos)</label>
-        <input id="notas-semana" placeholder="Ej: Yesid en vacaciones lun-mié · Cristian incapacitado jueves"></div>
-    </div>
-    <div class="form-row" style="max-width:500px">
-      <div>
-        <label>¿Alguien necesita horas extra autorizadas esta semana? (encima de su piso normal)</label>
-        <div id="horas-extra-list" style="margin-top:6px"></div>
-        <button class="secondary" type="button" onclick="agregarHorasExtra()" style="margin-top:6px">+ Agregar horas extra para alguien</button>
-        <div style="font-size:11px;color:#888;margin-top:5px">Si no agregas a nadie aquí, TODOS deben quedar exactamente en su piso normal (42h, o el que tenga configurado) — ni menos, ni de más.</div>
-      </div>
-    </div>
-    <div class="section-title" style="margin-top:16px">Turno de rotación esta semana</div>
-    <div class="form-row cols2" style="max-width:500px">
-      <div><label>Manuel Corro y Yesid Moreno</label>
-        <select id="rot-manuel-yesid">
-          <option value="A">Semana A — Manuel 8am-5pm · Yesid 9am-6pm</option>
-          <option value="B">Semana B — Manuel 9am-6pm · Yesid 8am-5pm</option>
-        </select>
-      </div>
-      <div><label>Iván Nieto y Fabián Cárdenas (mar/jue 7am)</label>
-        <select id="rot-ivan-fabian">
-          <option value="A">Semana A — Iván entra 7am mar/jue</option>
-          <option value="B">Semana B — Fabián entra 7am mar/jue</option>
-        </select>
-      </div>
-    </div>
-    <button class="primary" style="margin-top:8px" onclick="goToGenerar()">Continuar → Generar con IA</button>
   </div>
 
   <div id="tab-generar-ia" style="display:none">
-    <div class="info-box" id="config-resumen"></div>
-    <button class="primary" onclick="generarMalla()" id="btn-generar">Generar malla con IA</button>
-    <div id="gen-status" style="margin-top:14px"></div>
-    <div id="gen-output" style="display:none;margin-top:14px">
-      <div class="section-title">Respuesta de la IA</div>
-      <div class="ai-output" id="ai-raw"></div>
-      <button class="secondary" onclick="switchTab('revisar')">Ver malla visual →</button>
+    <div class="card">
+      <div class="section-title">Resumen de la semana</div>
+      <div id="config-resumen"></div>
+      <div class="btn-row">
+        <button class="primary" onclick="generarMalla()" id="btn-generar"><svg><use href="#i-spark"/></svg>Generar malla con IA</button>
+        <button class="secondary" onclick="switchTab('config')">Cambiar configuración</button>
+      </div>
+      <div id="gen-status" style="margin-top:14px"></div>
+      <div id="gen-output" style="display:none;margin-top:14px">
+        <div class="section-title">Respuesta de la IA</div>
+        <div class="ai-output" id="ai-raw"></div>
+        <button class="secondary" onclick="switchTab('revisar')">Ver la malla</button>
+      </div>
     </div>
   </div>
 
   <div id="tab-revisar" style="display:none">
     <div id="revisar-content">
-      <div class="warn-box">Primero genera la malla en el paso anterior.</div>
+      <div class="card"><div class="section-title">Todavía no hay malla</div><p class="hint">Genera la malla en el paso 2 o abre una semana del historial.</p></div>
     </div>
   </div>
-</div>
+</section>
 
-<div id="panel-historial" class="panel">
-  <div class="section-title">Mallas publicadas</div>
-  <div id="historial-list">
-    <div style="color:#888;font-size:13px;padding:20px 0">Aún no hay mallas aprobadas. Genera y aprueba tu primera malla para verla aquí.</div>
-  </div>
-</div>
-
-<div id="panel-publicar" class="panel">
-  <div class="section-title">Estado de la conexión con Google Sheets</div>
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;background:#f5f4f0;border-radius:10px;padding:14px 16px;flex-wrap:wrap">
-    <div style="flex:1">
-      <div style="font-size:13px;font-weight:500;margin-bottom:2px">Google Sheets conectado</div>
-      <div style="font-size:12px;color:#888">Malla de Turnos — Abastecimiento 2026 · dircompras@elbuengusto.com.co</div>
+<!-- ═══════════════════════ HISTORIAL ═══════════════════════ -->
+<section id="panel-historial" class="panel">
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Historial</h1>
+      <p class="page-desc">Todas las mallas aprobadas. Abre una para editarla o crea su imagen para WhatsApp.</p>
     </div>
-    <button id="btn-test" class="secondary" onclick="probarConexion()" style="white-space:nowrap">Probar conexión</button>
-    <a href="https://docs.google.com/spreadsheets/d/16LkvSU6xDM6yvaTgbmUaOcSsGrAppBAL0RHpSMcsj7w/edit" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:13px;color:#185FA5;border:0.5px solid #B5D4F4;border-radius:8px;text-decoration:none;background:#E6F1FB;white-space:nowrap">Abrir Sheets →</a>
-    <div id="conexion-status" style="width:100%;font-size:12px;margin-top:4px"></div>
+  </div>
+  <div class="card">
+    <div id="historial-list">
+      <p class="hint">Aún no hay mallas aprobadas. Genera y aprueba tu primera malla para verla aquí.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ GOOGLE SHEETS ═══════════════════════ -->
+<section id="panel-publicar" class="panel">
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Google Sheets</h1>
+      <p class="page-desc">Cada malla aprobada se guarda como una hoja nueva en “Malla de Turnos — Abastecimiento 2026”.</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="conn">
+      <span class="conn-dot" aria-hidden="true"></span>
+      <div style="flex:1;min-width:200px">
+        <div style="font-weight:600">Malla de Turnos — Abastecimiento 2026</div>
+        <div class="hint" style="margin:0">Conectado por Apps Script</div>
+      </div>
+      <button id="btn-test" class="secondary" onclick="probarConexion()">Probar conexión</button>
+      <a class="btn" href="https://docs.google.com/spreadsheets/d/16LkvSU6xDM6yvaTgbmUaOcSsGrAppBAL0RHpSMcsj7w/edit" target="_blank" rel="noopener"><svg><use href="#i-sheet"/></svg>Abrir Sheets</a>
+    </div>
+    <div id="conexion-status" style="font-size:14px;margin-top:10px"></div>
   </div>
 
-  <div class="section-title">Flujo semanal — cómo funciona</div>
-  <div class="steps">
-    <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">Cada viernes o sábado</div><div class="step-desc">Abre esta app, ve a "Generar malla", configura la semana siguiente con las fechas, rotaciones y notas especiales (vacaciones, incapacidades).</div></div></div>
-    <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Generar con IA</div><div class="step-desc">Haz clic en "Generar malla con IA". En segundos te muestra la malla completa garantizando el mínimo de 42h por persona, rotaciones y todas las reglas del equipo.</div></div></div>
-    <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">Revisar y aprobar</div><div class="step-desc">Revisa la tabla visual. Si algo no está bien, pídele corrección a la IA o regresa a ajustar las notas. Si todo está bien, clic en "Aprobar y publicar en Sheets".</div></div></div>
-    <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">Publicación automática</div><div class="step-desc">La app envía la malla al Google Sheets automáticamente — se crea una hoja nueva con el nombre de la semana, con colores, cargos y totales de horas. Sin copiar ni pegar nada.</div></div></div>
-    <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-title">Compartir con el equipo</div><div class="step-desc">El link de tu Sheets es siempre el mismo. Compártelo en el grupo de WhatsApp como mensaje fijado. Cada semana la nueva pestaña aparece automáticamente y cualquier empleado la ve desde el celular sin necesitar cuenta de Google.</div></div></div>
+  <div class="card">
+    <div class="section-title">La rutina de cada semana</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-content"><div class="step-title">Configura la semana</div><div class="step-desc">Viernes o sábado: abre Generar malla. Las fechas, los festivos y el inventario se detectan solos; revisa rotaciones y novedades.</div></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content"><div class="step-title">Genera con IA</div><div class="step-desc">La IA arma la malla con todas las reglas y la app garantiza el mínimo de horas de cada persona.</div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><div class="step-title">Revisa y ajusta</div><div class="step-desc">Toca cualquier celda para cambiar el turno. Las horas se recalculan al instante.</div></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content"><div class="step-title">Aprueba</div><div class="step-desc">“Aprobar y publicar” guarda la malla en el historial y crea su hoja en Google Sheets.</div></div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-content"><div class="step-title">Envíala por WhatsApp</div><div class="step-desc">“Imagen para WhatsApp” crea la malla con la fecha de la semana en el encabezado, lista para compartir o copiar y pegar en el grupo.</div></div></div>
+    </div>
   </div>
+</section>
 
-  <div class="section-title" style="margin-top:4px">Link permanente para compartir con el equipo</div>
-  <div style="background:#f5f4f0;border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-    <div style="flex:1;font-size:12px;color:#555;font-family:monospace;word-break:break-all">https://docs.google.com/spreadsheets/d/16LkvSU6xDM6yvaTgbmUaOcSsGrAppBAL0RHpSMcsj7w/edit</div>
-    <button class="copy-btn" onclick="navigator.clipboard.writeText('https://docs.google.com/spreadsheets/d/16LkvSU6xDM6yvaTgbmUaOcSsGrAppBAL0RHpSMcsj7w/edit').then(()=>alert('Link copiado'))">Copiar link</button>
-  </div>
-  <div class="info-box">Para que los empleados no necesiten cuenta de Google, ve al Sheets → <b>Archivo → Compartir → Publicar en la web</b> → selecciona "Toda la hoja de cálculo" → Publicar. Ese link secundario funciona sin login desde cualquier celular.</div>
+</div>
+</main>
 </div>
 
-</div>
+<!-- Editor de celda -->
+<dialog id="turno-editor" aria-labelledby="editor-title">
+  <div class="dlg-head">
+    <div>
+      <div class="dlg-title" id="editor-title">Editar turno</div>
+      <div class="dlg-sub" id="editor-sub"></div>
+    </div>
+    <button class="dlg-close" onclick="cerrarEditorTurno()" aria-label="Cerrar"><svg width="18" height="18"><use href="#i-x"/></svg></button>
+  </div>
+  <div class="dlg-body">
+    <div class="quick-codes" id="editor-quick"></div>
+    <label for="editor-search">Buscar turno</label>
+    <input id="editor-search" type="search" placeholder="Ej: 7am 8h" oninput="filtrarEditorSelect()" autocomplete="off">
+    <select id="editor-select" size="8" style="margin-top:8px" aria-label="Turnos" ondblclick="aplicarEdicionTurno()"></select>
+    <div id="editor-preview"></div>
+  </div>
+  <div class="dlg-foot">
+    <button class="secondary" onclick="cerrarEditorTurno()">Cancelar</button>
+    <button class="primary" onclick="aplicarEdicionTurno()">Aplicar turno</button>
+  </div>
+</dialog>
+
+<!-- Imagen para WhatsApp -->
+<dialog id="share-dialog" class="wide" aria-labelledby="share-title">
+  <div class="dlg-head">
+    <div>
+      <div class="dlg-title" id="share-title">Imagen para WhatsApp</div>
+      <div class="dlg-sub" id="share-sub"></div>
+    </div>
+    <button class="dlg-close" onclick="cerrarShare()" aria-label="Cerrar"><svg width="18" height="18"><use href="#i-x"/></svg></button>
+  </div>
+  <div class="dlg-body">
+    <div class="share-preview" id="share-preview"><span class="spinner"></span> Creando imagen…</div>
+    <div class="share-opts">
+      <label><input type="checkbox" id="share-horas" checked onchange="redibujarShare()"> Mostrar total de horas</label>
+      <label><input type="checkbox" id="share-cargo" checked onchange="redibujarShare()"> Mostrar cargos</label>
+    </div>
+  </div>
+  <div class="dlg-foot">
+    <span class="share-status" id="share-status" role="status"></span>
+    <button class="secondary" onclick="descargarImagenMalla()">Descargar</button>
+    <button class="secondary" id="btn-copiar-img" onclick="copiarImagenMalla()">Copiar imagen</button>
+    <button class="primary" id="btn-compartir-img" onclick="compartirImagenMalla()" hidden>Compartir</button>
+  </div>
+</dialog>
 
 <script>
 const EMPLEADOS_KEY = 'malla_empleados_v2';
@@ -368,6 +521,7 @@ function pickerToDisplay(baseId) {
   const [y, m, d] = picker.value.split('-');
   document.getElementById(baseId + '-display').value = d + '/' + m + '/' + y;
   document.getElementById(baseId).value = picker.value;
+  if (baseId === 'fecha-inicio') onFechaInicioCambiada(); else actualizarEtiquetaSemana();
 }
 function syncFecha(input, hiddenId) {
   let v = input.value.replace(/[^\d]/g, '');
@@ -378,6 +532,9 @@ function syncFecha(input, hiddenId) {
   if (parts.length === 3 && parts[2].length === 4) {
     const iso = parts[2] + '-' + parts[1].padStart(2, '0') + '-' + parts[0].padStart(2, '0');
     document.getElementById(hiddenId).value = iso;
+    const picker = document.getElementById(hiddenId + '-picker');
+    if (picker) picker.value = iso;
+    if (hiddenId === 'fecha-inicio') onFechaInicioCambiada(); else actualizarEtiquetaSemana();
   } else {
     document.getElementById(hiddenId).value = '';
   }
@@ -641,26 +798,26 @@ function renderTurnos() {
 
   const renderGroup = (items, titulo) => {
     if (!items.length) return '';
-    return `<div style="margin-bottom:16px">
-      <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">${titulo}</div>
-      <table>
+    return `<div style="margin-bottom:20px">
+      <div class="group-title">${titulo} <span class="hint" style="font-weight:400">(${items.length})</span></div>
+      <div class="table-wrap"><table>
         <thead><tr>
-          <th style="width:60px">Código</th>
+          <th style="width:80px">Código</th>
           <th>Entrada</th><th>Salida</th>
-          <th>Horas lab.</th><th>Almuerzo</th><th>Descripción</th><th></th>
+          <th>Horas</th><th>Almuerzo</th><th>Descripción</th><th></th>
         </tr></thead>
         <tbody>
           ${items.map(t => `<tr>
-            <td><span class="badge badge-gray" style="font-family:monospace;font-size:11px">${t.codigo}</span></td>
-            <td style="font-weight:500">${t.entrada}</td>
-            <td style="font-weight:500">${t.salida}</td>
-            <td>${t.horas > 0 ? t.horas + 'h' : '—'}</td>
-            <td>${t.almuerzo ? '<span class="badge badge-teal">+1h alm.</span>' : '<span class="badge badge-gray">S/A</span>'}</td>
-            <td style="color:#666">${t.desc || ''}</td>
-            <td>${especiales.includes(t.codigo) ? '' : `<button class="danger" onclick="deleteTurno('${t.codigo}')">Eliminar</button>`}</td>
+            <td><span class="code">${t.codigo}</span></td>
+            <td style="font-weight:600">${t.entrada}</td>
+            <td style="font-weight:600">${t.salida}</td>
+            <td>${t.horas > 0 ? t.horas + ' h' : '—'}</td>
+            <td>${t.almuerzo ? '<span class="badge badge-teal">Con almuerzo</span>' : (t.entrada === '-' ? '' : '<span class="badge badge-gray">Sin almuerzo</span>')}</td>
+            <td style="color:var(--muted)">${t.desc || ''}</td>
+            <td style="text-align:right">${especiales.includes(t.codigo) ? '' : `<button class="danger" onclick="deleteTurno('${t.codigo}')">Eliminar</button>`}</td>
           </tr>`).join('')}
         </tbody>
-      </table>
+      </table></div>
     </div>`;
   };
 
@@ -789,11 +946,10 @@ function agregarHorasExtra() {
   const opciones = empleados.filter(e => e.estado === 'Activo').map(e => `<option value="${e.nombre}">${e.nombre}</option>`).join('');
   const row = document.createElement('div');
   row.className = 'horas-extra-row';
-  row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:6px';
   row.innerHTML = `
-    <select class="he-nombre" style="flex:1">${opciones}</select>
-    <input type="number" class="he-horas" min="1" max="20" value="4" style="width:70px">
-    <span style="font-size:12px;color:#666">h extra</span>
+    <select class="he-nombre" style="flex:1" aria-label="Empleado">${opciones}</select>
+    <input type="number" class="he-horas" min="1" max="20" value="4" aria-label="Horas extra">
+    <span class="hint" style="margin:0;white-space:nowrap">h extra</span>
     <button class="danger" type="button" onclick="this.closest('.horas-extra-row').remove()">Quitar</button>
   `;
   cont.appendChild(row);
@@ -978,20 +1134,26 @@ function getMallaCacheKey() {
 function showPanel(name) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('visible'));
   document.getElementById('panel-' + name).classList.add('visible');
-  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
-  const labels = {dashboard:0, empleados:1, turnos:2, generar:3, historial:4, publicar:5};
-  document.querySelectorAll('.nav button')[labels[name]].classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b => {
+    const on = b.dataset.panel === name;
+    b.classList.toggle('active', on);
+    if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
   if (name === 'empleados') renderEmpleados();
   if (name === 'turnos') renderTurnos();
   if (name === 'historial') renderHistorial();
+  if (name === 'dashboard') renderDashboard();
+  window.scrollTo({top: 0});
 }
 
 function switchTab(name) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => { t.classList.remove('active'); t.removeAttribute('aria-current'); });
   document.querySelectorAll('#panel-generar [id^="tab-"]').forEach(t => t.style.display = 'none');
   document.getElementById('tab-' + name).style.display = 'block';
   const tabs = ['config','generar-ia','revisar'];
-  document.querySelectorAll('.tab')[tabs.indexOf(name)].classList.add('active');
+  const activo = document.querySelectorAll('.tab')[tabs.indexOf(name)];
+  activo.classList.add('active');
+  activo.setAttribute('aria-current', 'step');
 }
 
 function toggleAddEmp() {
@@ -1039,7 +1201,7 @@ const DIAS_SEMANA_SIN_DOMINGO = [
 function renderDiaCheckboxes(containerId, groupName, seleccionados) {
   const cont = document.getElementById(containerId);
   cont.innerHTML = DIAS_SEMANA_SIN_DOMINGO.map(d =>
-    `<label style="font-size:12px"><input type="checkbox" class="${groupName}" value="${d.v}" ${seleccionados.includes(d.v) ? 'checked' : ''}> ${d.l}</label>`
+    `<label class="day-check"><input type="checkbox" class="${groupName}" value="${d.v}" ${seleccionados.includes(d.v) ? 'checked' : ''}><span>${d.l}</span></label>`
   ).join('');
 }
 
@@ -1064,14 +1226,14 @@ function renderHorarioFijoGrid(dias) {
     const info = (dias && dias[d.v]) || {descansa: d.v === 'domingo', entrada:'8am', salida:'5pm', almuerzo:true};
     const dis = info.descansa ? 'disabled' : '';
     const horasIniciales = info.descansa ? 0 : parsearHorasNetas({codigo:'X', entrada: info.entrada, salida: info.salida, almuerzo: info.almuerzo});
-    return `<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap" data-dia="${d.v}">
-      <div style="width:68px;font-size:12px;font-weight:500">${d.l}</div>
-      <label style="font-size:11px;display:flex;align-items:center;gap:4px"><input type="checkbox" class="hf-descansa" ${info.descansa?'checked':''} onchange="actualizarHorasFijoFila(this)"> Descansa</label>
-      <input class="hf-entrada" style="width:70px" placeholder="7am" value="${info.entrada||''}" oninput="actualizarHorasFijoFila(this)" ${dis}>
-      <span style="font-size:11px;color:#aaa">→</span>
-      <input class="hf-salida" style="width:70px" placeholder="4pm" value="${info.salida||''}" oninput="actualizarHorasFijoFila(this)" ${dis}>
-      <label style="font-size:11px;display:flex;align-items:center;gap:4px"><input type="checkbox" class="hf-almuerzo" ${info.almuerzo?'checked':''} onchange="actualizarHorasFijoFila(this)" ${dis}> +alm</label>
-      <span class="hf-horas" style="font-size:11px;color:#888;min-width:34px;text-align:right">${horasIniciales || 0}h</span>
+    return `<div class="hf-row" data-dia="${d.v}">
+      <div class="hf-day">${d.l}</div>
+      <label><input type="checkbox" class="hf-descansa" ${info.descansa?'checked':''} onchange="actualizarHorasFijoFila(this)"> Descansa</label>
+      <input class="hf-entrada" placeholder="7am" aria-label="Entrada ${d.l}" value="${info.entrada||''}" oninput="actualizarHorasFijoFila(this)" ${dis}>
+      <span class="arrow">a</span>
+      <input class="hf-salida" placeholder="4pm" aria-label="Salida ${d.l}" value="${info.salida||''}" oninput="actualizarHorasFijoFila(this)" ${dis}>
+      <label><input type="checkbox" class="hf-almuerzo" ${info.almuerzo?'checked':''} onchange="actualizarHorasFijoFila(this)" ${dis}> Almuerzo</label>
+      <span class="hf-horas">${horasIniciales || 0}h</span>
     </div>`;
   }).join('');
   actualizarTotalHorasFijo();
@@ -1160,13 +1322,14 @@ function toggleEditEmp(id) {
   renderHorarioFijoGrid(hf.dias);
   toggleEditHorarioFijo();
 
-  const form = document.getElementById('edit-emp-form');
-  form.style.display = 'block';
-  form.scrollIntoView({behavior:'smooth', block:'center'});
+  const dlg = document.getElementById('edit-emp-dialog');
+  if (!dlg.open) dlg.showModal();
+  dlg.scrollTop = 0;
 }
 
 function cerrarEdicionEmpleado() {
-  document.getElementById('edit-emp-form').style.display = 'none';
+  const dlg = document.getElementById('edit-emp-dialog');
+  if (dlg.open) dlg.close();
 }
 
 function guardarEdicionEmpleado() {
@@ -1220,15 +1383,17 @@ function renderEmpleados() {
     const row = document.createElement('div');
     row.className = 'emp-row';
     row.innerHTML = `
-      <div class="emp-avatar" style="background:${emp.color}20;color:${emp.color === '#CCC' ? '#888' : '#444'}">${initials(emp.nombre)}</div>
-      <div style="flex:1">
+      <div class="emp-avatar" style="background:${emp.color || '#D3D1C7'};color:var(--pine)" aria-hidden="true">${initials(emp.nombre)}</div>
+      <div style="min-width:0">
         <div class="emp-name">${emp.nombre}</div>
-        <div class="emp-role">${emp.cargo} · ${emp.estado === 'Vacante' ? '<span style="color:#A32D2D">Vacante</span>' : emp.entrada + ' – ' + emp.salida}</div>
-        ${emp.regla && emp.regla !== 'Horario estándar' ? `<div style="font-size:10px;color:#888;margin-top:2px">${emp.regla}</div>` : ''}
+        <div class="emp-role">${emp.cargo}${emp.reglas && emp.reglas.horarioFijo && emp.reglas.horarioFijo.activo ? ' · horario fijo' : ''}${emp.reglas && emp.reglas.grupoRotacion ? ' · rota descansos' : ''}</div>
+        ${emp.regla && emp.regla !== 'Horario estándar' ? `<div class="emp-rule">${emp.regla}</div>` : ''}
       </div>
       <span class="badge ${emp.estado === 'Activo' ? 'badge-teal' : emp.estado === 'Vacante' ? 'badge-red' : 'badge-amber'}">${emp.estado}</span>
-      <button class="secondary" onclick="toggleEditEmp(${emp.id})">Editar</button>
-      <button class="danger" onclick="removeEmpleado(${emp.id})">Eliminar</button>
+      <div class="emp-actions">
+        <button class="secondary sm" onclick="toggleEditEmp(${emp.id})">Editar</button>
+        <button class="danger" onclick="removeEmpleado(${emp.id})" aria-label="Eliminar a ${emp.nombre}">Eliminar</button>
+      </div>
     `;
     list.appendChild(row);
   });
@@ -1288,13 +1453,17 @@ function goToGenerar() {
   const resumen = document.getElementById('config-resumen');
   const festivosLabel = getFestivosDias();
   const proxSemanaFestivo = document.getElementById('prox-semana-festivo').checked;
-  resumen.innerHTML = `<b style="font-weight:500">Semana configurada:</b> ${fmtCorto(fi)} al ${fmtCorto(ff)}<br>
-    Rotación Manuel/Yesid: <b>${rotMY === 'A' ? 'Manuel 8am-5pm · Yesid 9am-6pm' : 'Manuel 9am-6pm · Yesid 8am-5pm'}</b><br>
-    Rotación Iván/Fabián: <b>${rotIF === 'A' ? 'Iván entra 7am mar/jue' : 'Fabián entra 7am mar/jue'}</b><br>
-    Inventario: <b>${inventario === 'si' ? `Sí — todos 6am el ${document.getElementById('dia-inventario').value}` : 'No'}</b><br>
-    Festivos: <b>${festivosLabel.length > 0 ? festivosLabel.join(', ') : 'ninguno'}</b><br>
-    Próxima semana con lunes festivo: <b>${proxSemanaFestivo ? 'Sí — Laura García y Nohemy trabajan este domingo' : 'No'}</b>
-    ${notas ? '<br>Notas: ' + notas : ''}`;
+  const horasExtraRes = leerHorasExtra();
+  resumen.innerHTML = `<dl class="resumen-config">
+    <dt>Semana</dt><dd>${textoRangoSemana(fi, ff)}</dd>
+    <dt>Manuel y Yesid</dt><dd>${rotMY === 'A' ? 'Manuel 8am–5pm, Yesid 9am–6pm' : 'Manuel 9am–6pm, Yesid 8am–5pm'}</dd>
+    <dt>Mar y jue 7 am</dt><dd>${rotIF === 'A' ? 'Iván Nieto' : 'Fabián Cárdenas'}</dd>
+    <dt>Festivos</dt><dd>${festivosLabel.length > 0 ? festivosLabel.map(d => DIA_LABEL_PROMPT[d]).join(', ') : 'Ninguno'}</dd>
+    <dt>Inventario</dt><dd>${inventario === 'si' ? `${DIA_LABEL_PROMPT[document.getElementById('dia-inventario').value]}, todos a las 6 am` : 'No'}</dd>
+    <dt>Lunes festivo siguiente</dt><dd>${proxSemanaFestivo ? 'Sí, Laura y Nohemy trabajan el domingo' : 'No'}</dd>
+    ${horasExtraRes.length ? `<dt>Horas extra</dt><dd>${horasExtraRes.map(h => `${h.nombre} +${h.horasExtra} h`).join(', ')}</dd>` : ''}
+    ${notas ? `<dt>Novedades</dt><dd>${notas}</dd>` : ''}
+  </dl>`;
   switchTab('generar-ia');
 }
 
@@ -1460,21 +1629,29 @@ RECUERDA: antes de responder, verifica que "total_horas" de CADA empleado coinci
 }
 
 // ── Normalización post-generación ───────────────────────────────────────────
+// El selector #dia-inventario entrega el NOMBRE del día ('lunes'…'domingo'),
+// no una fecha ISO. Antes se trataba como fecha y daba Invalid Date, así que
+// normalizarInventario() nunca hacía nada y la columna de inventario no se
+// marcaba en la revisión. Aceptamos ambos formatos por compatibilidad.
+function diaKeyInventario(valor, fiISO) {
+  const DIAS = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
+  if (!valor) return null;
+  if (DIAS.includes(valor)) return valor;
+  const diff = Math.round((new Date(valor + 'T12:00:00') - new Date(fiISO + 'T12:00:00')) / 86400000);
+  return (diff >= 0 && diff <= 6) ? DIAS[diff] : null;
+}
+
 function normalizarInventario(data, diaInvISO, fiISO) {
   // Calcula qué día de la semana (0=lun…6=dom) corresponde a diaInvISO
   // y convierte esa columna a código INVENT si la IA lo dejó como turno regular.
-  const DIAS = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
-  const fechaInv = new Date(diaInvISO + 'T12:00:00');
-  const fechaIni = new Date(fiISO + 'T12:00:00');
-  const diffDias = Math.round((fechaInv - fechaIni) / 86400000);
-  if (diffDias < 0 || diffDias > 6) return; // fuera de la semana
-  const diaKey = DIAS[diffDias];
+  const diaKey = diaKeyInventario(diaInvISO, fiISO);
   if (!diaKey) return;
   for (const nombre of Object.keys(data.turnos || {})) {
     const celda = data.turnos[nombre][diaKey];
     if (!celda) continue;
-    // Si la IA usó un turno regular (no INVENT), lo forzamos a INVENT
-    if (celda.codigo !== 'INVENT') {
+    // Si la IA usó un turno regular (no INVENT), lo forzamos a INVENT.
+    // Ausencias (descanso, vacaciones, día familia, compensatorio) no se tocan.
+    if (celda.codigo !== 'INVENT' && !['D','V','F','C'].includes(celda.codigo)) {
       const salidaActual = celda.salida && celda.salida !== '-' && celda.salida !== '?' ? celda.salida : '1pm';
       data.turnos[nombre][diaKey] = {
         codigo: 'INVENT',
@@ -1582,87 +1759,154 @@ function parsearHorasNetas(t) {
   return t.almuerzo ? Math.max(0, h - 1) : h;
 }
 
-function renderMallaReview(data, fi, ff) {
-  const dias = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
-  const diaLabel = {'lunes':'Lun','martes':'Mar','miercoles':'Mié','jueves':'Jue','viernes':'Vie','sabado':'Sáb','domingo':'Dom'};
-  const lunesFestivoRev = getFestivosDias().includes('lunes');
-  const horasExtraRev = leerHorasExtra();
+// Contexto de la malla que se está revisando (fechas, festivos, inventario).
+// Se guarda aparte del formulario de Configurar porque también se revisan
+// mallas abiertas desde el Historial, que no tienen nada que ver con las
+// fechas que haya en ese formulario.
+let mallaCtx = null; // {fi, ff, festivos:[{dia,iso,nombre}], invDia}
 
-  let html = '';
-  if (data.advertencias && data.advertencias.length) {
-    html += `<div class="warn-box"><b style="font-weight:500">Advertencias:</b><br>${data.advertencias.join('<br>')}</div>`;
+const DIAS_ORDEN = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
+const DIA_CORTO = {lunes:'Lun', martes:'Mar', miercoles:'Mié', jueves:'Jue', viernes:'Vie', sabado:'Sáb', domingo:'Dom'};
+const CODIGO_LABEL = {D:'Descanso', V:'Vacaciones', F:'Día familia', C:'Compensatorio', INVENT:'Inventario'};
+
+function claseTurno(cod) {
+  if (cod === 'D') return 'shift-D';
+  if (cod === 'V') return 'shift-V';
+  if (cod === 'F') return 'shift-F';
+  if (cod === 'C') return 'shift-C';
+  if (cod === 'INVENT') return 'shift-INVENT';
+  return 'shift-work';
+}
+
+// Normaliza una celda para mostrarla: si la celda trae un código sin horas
+// (pasa con mallas viejas importadas del Excel), intenta resolverlo con el catálogo.
+function resolverCelda(t) {
+  t = t || {codigo:'D', entrada:'-', salida:'-', horas:0, almuerzo:false};
+  const cod = String(t.codigo || 'D');
+  if (CODIGO_LABEL[cod] && cod !== 'INVENT') return {cod, tipo: cod, linea1: CODIGO_LABEL[cod], linea2: ''};
+  if (cod === 'INVENT') {
+    const sal = t.salida && t.salida !== '-' && t.salida !== '?' ? t.salida : '1pm';
+    return {cod, tipo:'INVENT', linea1: `6am – ${sal}`, linea2: 'Inventario'};
   }
-  if (data.resumen) {
-    html += `<div class="ok-box">${data.resumen}</div>`;
+  let entrada = t.entrada, salida = t.salida, almuerzo = !!t.almuerzo;
+  if (!entrada || entrada === '-' || entrada === '?') {
+    const cat = catalogoTurnos.find(x => x.codigo === cod);
+    if (cat && cat.entrada && cat.entrada !== '-') { entrada = cat.entrada; salida = cat.salida; almuerzo = !!cat.almuerzo; }
   }
-  html += `<div class="info-box" style="margin-bottom:10px">Haz clic en cualquier celda de turno para cambiarlo. Los cambios se aplican a la malla antes de aprobar.</div>`;
+  if (!entrada || entrada === '-' || entrada === '?') return {cod, tipo:'WORK', linea1: `Turno ${cod}`, linea2: ''};
+  return {cod, tipo:'WORK', linea1: `${entrada} – ${salida}`, linea2: almuerzo ? 'con almuerzo' : ''};
+}
 
-  // Build options for the inline select
-  const opcionesSelect = buildOpcionesTurno(catalogoTurnos);
+// Nombre bonito para mostrar: las mallas importadas vienen en MAYÚSCULAS.
+function empleadoDeFila(nombre) {
+  const n = normalizarNombre(nombre);
+  return empleados.find(e => normalizarNombre(e.nombre) === n)
+      || empleados.find(e => e.nombre.toLowerCase().includes(nombre.toLowerCase().split(' ')[0]))
+      || null;
+}
+function nombreBonito(nombre) {
+  const emp = empleados.find(e => normalizarNombre(e.nombre) === normalizarNombre(nombre));
+  if (emp) return emp.nombre;
+  if (nombre === nombre.toUpperCase()) {
+    return nombre.toLowerCase().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
+  return nombre;
+}
 
-  // ── Detectar columna de inventario ─────────────────────────────────────
-  let invDiaKey = null;
-  try {
-    const esInv = document.getElementById('es-inventario').value === 'si';
-    if (esInv) {
-      const diaInvISO = document.getElementById('dia-inventario').value;
-      if (diaInvISO && fi) {
-        const diff = Math.round(
-          (new Date(diaInvISO + 'T12:00:00') - new Date(fi + 'T12:00:00')) / 86400000
-        );
-        if (diff >= 0 && diff <= 6) invDiaKey = dias[diff];
-      }
+function fechaDia(fi, idx) {
+  const d = new Date(fi + 'T12:00:00');
+  d.setDate(d.getDate() + idx);
+  return d;
+}
+
+// Detecta la columna de inventario mirando la malla misma (para mallas del historial).
+function detectarDiaInventario(data) {
+  const filas = Object.values(data.turnos || {});
+  if (!filas.length) return null;
+  for (const dia of DIAS_ORDEN) {
+    const n = filas.filter(f => f && f[dia] && f[dia].codigo === 'INVENT').length;
+    if (n >= Math.max(1, Math.ceil(filas.length / 2))) return dia;
+  }
+  return null;
+}
+
+// Arma el contexto de una semana: festivos (calendario colombiano + los que
+// el coordinador haya marcado si es la semana del formulario) e inventario.
+function construirMallaCtx(data, fi, ff) {
+  const cal = fi ? festivosColombiaEnSemana(fi) : [];
+  const esSemanaConfig = fi && fi === document.getElementById('fecha-inicio').value;
+  const festivos = [...cal];
+  if (esSemanaConfig) {
+    getFestivosDias().forEach(d => {
+      if (!festivos.some(f => f.dia === d)) festivos.push({dia: d, nombre: 'Festivo'});
+    });
+    // Si el coordinador desmarcó un festivo detectado, respetamos su decisión
+    for (let i = festivos.length - 1; i >= 0; i--) {
+      if (festivos[i].dia !== 'domingo' && !getFestivosDias().includes(festivos[i].dia)) festivos.splice(i, 1);
     }
-  } catch(e) {}
+  }
+  let invDia = detectarDiaInventario(data);
+  if (!invDia && esSemanaConfig && document.getElementById('es-inventario').value === 'si') {
+    invDia = diaKeyInventario(document.getElementById('dia-inventario').value, fi);
+  }
+  return {fi, ff, festivos, invDia, esSemanaConfig};
+}
+
+function renderMallaReview(data, fi, ff) {
+  mallaCtx = construirMallaCtx(data, fi, ff);
+  const dias = DIAS_ORDEN;
+  const festDias = mallaCtx.festivos.map(f => f.dia);
+  const lunesFestivoRev = festDias.includes('lunes');
+  const horasExtraRev = mallaCtx.esSemanaConfig ? leerHorasExtra() : [];
+  const invDiaKey = mallaCtx.invDia;
+
+  let html = `<div class="review-head">
+    <div>
+      <div class="review-week">${fi ? textoRangoSemana(fi, ff) : (data.semana || 'Malla')}</div>
+      <div class="review-sub">Toca cualquier celda para cambiar el turno. Las horas se recalculan solas.</div>
+    </div>
+    <div class="btn-row">
+      <button class="secondary pine" onclick="abrirShareActual()"><svg><use href="#i-image"/></svg>Imagen para WhatsApp</button>
+      <button class="primary" onclick="aprobarMalla('${fi}','${ff}')">Aprobar y publicar</button>
+    </div>
+  </div>`;
+
+  if (data.advertencias && data.advertencias.length) {
+    html += `<details class="adv"><summary>Ajustes y advertencias de la IA (${data.advertencias.length})</summary>
+      <ul>${data.advertencias.map(a => `<li>${a}</li>`).join('')}</ul></details>`;
+  }
+  if (data.resumen && !/importada del archivo/i.test(data.resumen)) {
+    html += `<p class="hint" style="margin:0 0 12px;max-width:80ch">${data.resumen}</p>`;
+  }
 
   html += `<div class="malla-table-wrap"><table class="malla-table">
     <thead><tr>
       <th class="name-col">Empleado</th>
-      <th>Cargo</th>
-      ${dias.map(d => {
+      ${dias.map((d, i) => {
+        const f = mallaCtx.festivos.find(x => x.dia === d);
         const isInv = d === invDiaKey;
-        const cls = [d==='sabado'?'day-sat':d==='domingo'?'day-sun':'', isInv?'inv-day-th':''].filter(Boolean).join(' ');
-        const badge = isInv ? `<br><span class="inv-day-badge">Inventario</span>` : '';
-        return `<th class="${cls}">${diaLabel[d]}${badge}</th>`;
+        const cls = [d === 'domingo' ? 'day-sun' : '', f ? 'festivo-th' : '', isInv ? 'inv-day-th' : ''].filter(Boolean).join(' ');
+        const num = fi ? fechaDia(fi, i).getDate() : '';
+        const tag = f ? `<span class="th-tag fest" title="${f.nombre}">Festivo</span>` : isInv ? `<span class="th-tag inv">Inventario</span>` : '';
+        return `<th class="${cls}" scope="col"><span class="dname">${DIA_CORTO[d]}</span><span class="dnum">${num}</span>${tag}</th>`;
       }).join('')}
-      <th class="hours-col">Total h</th>
+      <th class="hours-col" scope="col">Horas</th>
     </tr></thead><tbody>`;
 
   for (const [nombre, turnos] of Object.entries(data.turnos || {})) {
-    const emp = empleados.find(e => e.nombre.toLowerCase().includes(nombre.toLowerCase().split(' ')[0])) || {};
+    const emp = empleadoDeFila(nombre) || {};
     let totalH = 0;
     dias.forEach(d => { totalH += parsearHorasNetas(turnos[d] || {}); });
 
-    html += `<tr><td class="name-cell">${nombre}</td><td class="role-cell">${emp.cargo || ''}</td>`;
+    html += `<tr><td class="name-cell">${nombreBonito(nombre)}<span class="cargo">${emp.cargo || ''}</span></td>`;
     dias.forEach(dia => {
-      const t = turnos[dia] || {codigo:'D', entrada:'-', salida:'-', horas:0, almuerzo:false};
-      const cod = t.codigo || 'D';
-      let cellClass = 'shift-work';
-      if (cod === 'D') cellClass = 'shift-D';
-      else if (cod === 'V') cellClass = 'shift-V';
-      else if (cod === 'F') cellClass = 'shift-F';
-      else if (cod === 'C') cellClass = 'shift-C';
-      else if (cod === 'INVENT') cellClass = 'shift-INVENT';
-      const isInvCol = dia === invDiaKey;
-      const dayClass = [
-        dia==='sabado'?'day-sat':dia==='domingo'?'day-sun':'',
-        isInvCol?'inv-day-col':''
-      ].filter(Boolean).join(' ');
-
-      // Label: show entrada-salida + almuerzo indicator for work shifts
-      let labelLines = '';
-      if (['D','V','F','C'].includes(cod)) {
-        labelLines = cod;
-      } else if (cod === 'INVENT') {
-        const salInv = t.salida && t.salida !== '-' && t.salida !== '?' ? t.salida : '1pm';
-        labelLines = `6am<br>${salInv}`;
-      } else {
-        labelLines = `${t.entrada}<br>${t.salida}${t.almuerzo ? '<br><span style="font-size:9px;opacity:0.8">+alm</span>' : ''}`;
-      }
-
-      const empKey = nombre.replace(/'/g,"\\'");
-      html += `<td class="${dayClass}" style="cursor:pointer" onclick="abrirEditorTurno(this,'${empKey}','${dia}','${cod}')" title="Clic para editar">
-        <span class="shift-cell ${cellClass}">${labelLines}</span>
+      const c = resolverCelda(turnos[dia]);
+      const tdCls = ['edit-cell', dia === 'domingo' ? 'day-sun' : '', dia === invDiaKey ? 'inv-day-col' : ''].filter(Boolean).join(' ');
+      const empKey = nombre.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      html += `<td class="${tdCls}" tabindex="0" role="button" aria-label="${nombreBonito(nombre)}, ${DIA_LABEL_PROMPT[dia]}: ${c.linea1}${c.linea2 ? ', ' + c.linea2 : ''}. Cambiar turno"
+        onclick="abrirEditorTurno(this,'${empKey}','${dia}','${String(c.cod).replace(/'/g, "\\'")}')"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}">
+        <span class="shift-cell ${claseTurno(c.cod)}">${c.linea1}${c.linea2 ? `<span class="t2">${c.linea2}</span>` : ''}</span>
       </td>`;
     });
     const tieneHorarioFijo = !!(emp && emp.reglas && emp.reglas.horarioFijo && emp.reglas.horarioFijo.activo);
@@ -1672,53 +1916,37 @@ function renderMallaReview(data, fi, ff) {
     const sobreMeta = !tieneHorarioFijo && totalH > metaH; // toda hora de más debe venir de "horas extra autorizadas" — si no, es un exceso no previsto
     const warnH = bajoMeta || sobreMeta;
     const warnTitle = bajoMeta
-      ? `Por DEBAJO de su meta (${metaH}h) — le faltan ${metaH - totalH}h`
-      : sobreMeta ? `Por ENCIMA de su meta (${metaH}h) — ${totalH - metaH}h sin autorizar, revisa si necesita horas extra`
+      ? `Por debajo de su meta (${metaH} h): le faltan ${metaH - totalH} h`
+      : sobreMeta ? `Por encima de su meta (${metaH} h): ${totalH - metaH} h sin autorizar`
       : '';
-    html += `<td class="hours-col ${warnH?'warn-hours':''}" id="total-${nombre.replace(/\s/g,'_')}" title="${warnTitle}">${totalH}h${warnH?' ⚠':''}</td></tr>`;
+    html += `<td class="hours-col ${warnH ? 'warn-hours' : ''}" id="total-${nombre.replace(/\s/g,'_')}" title="${warnTitle}">${totalH} h${warnH ? ' ⚠' : ''}</td></tr>`;
   }
 
   html += `</tbody></table></div>`;
 
-  // Inline editor popup (hidden by default)
-  html += `<div id="turno-editor" style="display:none;background:#fff;border:0.5px solid #ccc;border-radius:10px;padding:14px;margin:10px 0;max-width:400px">
-    <div style="font-size:13px;font-weight:500;margin-bottom:10px" id="editor-title">Editar turno</div>
-    <div class="form-row">
-      <div><label>Buscar turno</label>
-        <input id="editor-search" type="text" placeholder="Ej: 7am, 8h, +alm..." oninput="filtrarEditorSelect()">
-      </div>
-    </div>
-    <div class="form-row cols2">
-      <div><label>Nuevo turno</label>
-        <select id="editor-select">${opcionesSelect}</select>
-      </div>
-      <div style="display:flex;flex-direction:column;justify-content:flex-end;gap:6px">
-        <button class="primary" onclick="aplicarEdicionTurno()">Aplicar</button>
-        <button class="secondary" onclick="cerrarEditorTurno()">Cancelar</button>
-      </div>
-    </div>
-    <div id="editor-preview" style="font-size:11px;color:#555;margin-top:4px"></div>
+  html += `<div class="legend" aria-label="Convenciones">
+    <span><i style="background:var(--w-bg)"></i>Turno</span>
+    <span><i style="background:var(--d-bg)"></i>Descanso</span>
+    <span><i style="background:var(--v-bg)"></i>Vacaciones</span>
+    <span><i style="background:var(--f-bg)"></i>Día familia</span>
+    <span><i style="background:var(--c-bg)"></i>Compensatorio</span>
+    <span><i style="background:var(--inv-bg)"></i>Inventario</span>
+    <span><i style="background:var(--inv-bg);box-shadow:inset 0 0 0 1px #E58C8C"></i>⚠ Horas fuera de la meta</span>
   </div>`;
 
-  html += `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
-    <button class="primary" onclick="aprobarMalla('${fi}','${ff}')">Aprobar y publicar en Sheets</button>
-    <button class="secondary" onclick="switchTab('generar-ia')">← Regenerar</button>
-    <button class="secondary" onclick="exportarCSV()">Exportar TSV (manual)</button>
-    <a href="${SHEETS_URL}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;font-size:13px;color:#185FA5;border:0.5px solid #B5D4F4;border-radius:8px;text-decoration:none;background:#E6F1FB">Abrir Sheets</a>
+  html += `<div class="btn-row">
+    <button class="secondary sm" onclick="switchTab('generar-ia')">Volver a generar</button>
+    <button class="ghost" onclick="exportarCSV()">Copiar para pegar en Sheets</button>
+    <a class="btn sm" href="${SHEETS_URL}" target="_blank" rel="noopener">Abrir Sheets</a>
   </div>`;
 
   document.getElementById('revisar-content').innerHTML = html;
-
-  // Wire up select preview
-  const sel = document.getElementById('editor-select');
-  if (sel) sel.addEventListener('change', actualizarPreviewEditor);
-
   switchTab('revisar');
 }
 
 function buildOpcionesTurno(items) {
   return items.map(t =>
-    `<option value="${t.codigo}">${t.codigo} · ${t.entrada === '-' ? t.desc : t.entrada+'-'+t.salida+' ('+t.horas+'h'+(t.almuerzo?' +alm':'')+')'}</option>`
+    `<option value="${t.codigo}">${t.entrada === '-' ? (CODIGO_LABEL[t.codigo] || t.desc) : t.entrada + ' – ' + t.salida + '   ' + t.horas + ' h' + (t.almuerzo ? ', con almuerzo' : '')}   [${t.codigo}]</option>`
   ).join('');
 }
 
@@ -1731,39 +1959,51 @@ function filtrarEditorSelect() {
   sel.innerHTML = filtrados.length ? buildOpcionesTurno(filtrados) : '<option value="" disabled>Sin resultados</option>';
   // Si el turno que estaba seleccionado sigue en los resultados, lo mantenemos
   if (filtrados.some(t => t.codigo === actual)) sel.value = actual;
+  else if (filtrados.length) sel.selectedIndex = 0;
   actualizarPreviewEditor();
 }
 
-let editorCtx = null; // {cell, nombre, dia, codigoAnterior}
+let editorCtx = null; // {cell, nombre, dia}
 
 function abrirEditorTurno(cell, nombre, dia, codigoActual) {
   editorCtx = {cell, nombre, dia};
-  const editor = document.getElementById('turno-editor');
-  const title = document.getElementById('editor-title');
+  const dlg = document.getElementById('turno-editor');
   const sel = document.getElementById('editor-select');
   const buscador = document.getElementById('editor-search');
-  title.textContent = `Editar turno de ${nombre} — ${dia}`;
+  const idx = DIAS_ORDEN.indexOf(dia);
+  document.getElementById('editor-title').textContent = nombreBonito(nombre);
+  document.getElementById('editor-sub').textContent = DIA_LABEL_PROMPT[dia] +
+    (mallaCtx && mallaCtx.fi ? ' ' + fmtCorto(fechaDia(mallaCtx.fi, idx)) : '');
+  document.getElementById('editor-quick').innerHTML = ['D','V','F','C','INVENT'].map(c =>
+    `<button type="button" class="${claseTurno(c)}" onclick="aplicarCodigoRapido('${c}')">${CODIGO_LABEL[c]}</button>`
+  ).join('');
   if (buscador) buscador.value = '';
   sel.innerHTML = buildOpcionesTurno(catalogoTurnos);
   sel.value = codigoActual;
   actualizarPreviewEditor();
-  // Insert editor right after the table
-  const wrap = document.querySelector('.malla-table-wrap');
-  wrap.parentNode.insertBefore(editor, wrap.nextSibling);
-  editor.style.display = 'block';
-  editor.scrollIntoView({behavior:'smooth', block:'nearest'});
+  if (!sel.dataset.wired) { sel.addEventListener('change', actualizarPreviewEditor); sel.dataset.wired = '1'; }
+  dlg.showModal();
+  buscador.focus();
 }
 
 function actualizarPreviewEditor() {
   const sel = document.getElementById('editor-select');
   const prev = document.getElementById('editor-preview');
   if (!sel || !prev) return;
+  if (!sel.value) { prev.textContent = ''; return; }
   const t = getTurno(sel.value);
   if (t.entrada !== '-') {
-    prev.textContent = `→ Entrada: ${t.entrada} · Salida: ${t.salida} · ${t.horas}h laborales · ${t.almuerzo ? '+1h almuerzo' : 'S/A (sin almuerzo)'}`;
+    prev.innerHTML = `Entra <b>${t.entrada}</b>, sale <b>${t.salida}</b>: ${t.horas} h laborales, ${t.almuerzo ? 'con 1 h de almuerzo' : 'sin almuerzo'}.`;
   } else {
-    prev.textContent = `→ ${t.desc}`;
+    prev.textContent = CODIGO_LABEL[t.codigo] || t.desc;
   }
+}
+
+function aplicarCodigoRapido(codigo) {
+  const sel = document.getElementById('editor-select');
+  sel.innerHTML = buildOpcionesTurno(catalogoTurnos);
+  sel.value = codigo;
+  aplicarEdicionTurno();
 }
 
 function aplicarEdicionTurno() {
@@ -1771,32 +2011,33 @@ function aplicarEdicionTurno() {
   const {nombre, dia} = editorCtx;
   const sel = document.getElementById('editor-select');
   const nuevoCodigo = sel.value;
+  if (!nuevoCodigo) return;
   const nuevoTurno = getTurno(nuevoCodigo);
 
-  // Update in currentMallaData
   if (!currentMallaData.turnos[nombre]) return;
   currentMallaData.turnos[nombre][dia] = {
     codigo: nuevoCodigo,
-    entrada: nuevoTurno.entrada,
+    entrada: nuevoCodigo === 'INVENT' ? '6am' : nuevoTurno.entrada,
     salida: nuevoTurno.salida,
     horas: nuevoTurno.horas,
     almuerzo: nuevoTurno.almuerzo
   };
 
-  // Recalculate total for this employee using net hours (almuerzo excluded)
-  const dias = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
-  const total = dias.reduce((s, d) => s + parsearHorasNetas(currentMallaData.turnos[nombre][d] || {}), 0);
+  // Recalcula el total con horas netas (sin almuerzo)
+  const total = DIAS_ORDEN.reduce((s, d) => s + parsearHorasNetas(currentMallaData.turnos[nombre][d] || {}), 0);
   currentMallaData.turnos[nombre].total_horas = total;
+  mallaPublicadaEnSheets = false; // hay cambios sin publicar
 
-  // Re-render the review
-  const fi = document.getElementById('fecha-inicio').value;
-  const ff = document.getElementById('fecha-fin').value;
-  renderMallaReview(currentMallaData, fi, ff);
+  const ctx = mallaCtx || {fi: document.getElementById('fecha-inicio').value, ff: document.getElementById('fecha-fin').value};
+  const y = window.scrollY;
+  cerrarEditorTurno();
+  renderMallaReview(currentMallaData, ctx.fi, ctx.ff);
+  window.scrollTo({top: y});
 }
 
 function cerrarEditorTurno() {
-  const editor = document.getElementById('turno-editor');
-  if (editor) editor.style.display = 'none';
+  const dlg = document.getElementById('turno-editor');
+  if (dlg && dlg.open) dlg.close();
   editorCtx = null;
 }
 
@@ -1812,7 +2053,7 @@ async function aprobarMalla(fi, ff) {
   };
 
   const btnAprobar = document.querySelector('button[onclick*="aprobarMalla"]');
-  if (btnAprobar) { btnAprobar.disabled = true; btnAprobar.textContent = 'Publicando en Sheets…'; }
+  if (btnAprobar) { btnAprobar.disabled = true; btnAprobar.innerHTML = '<span class="spinner"></span>Publicando…'; }
 
   try {
     const payload = {
@@ -1829,41 +2070,52 @@ async function aprobarMalla(fi, ff) {
     const result = await resp.json();
 
     if (result.ok) {
-      historial.unshift(entry);
-      saveHistorial(historial);
+      upsertHistorialLocal(entry);
       mallaPublicadaEnSheets = true;
-      mostrarNotificacion('✓ Malla aprobada y publicada en Google Sheets · ' + result.hoja, 'ok');
+      mostrarNotificacion('Malla publicada en la hoja "' + result.hoja + '".', 'ok');
+      document.querySelectorAll('#revisar-content .approve-status').forEach(el => el.remove());
       document.getElementById('revisar-content').insertAdjacentHTML('afterbegin',
-        `<div class="ok-box" style="margin-bottom:12px">
-          ✓ <b style="font-weight:500">Malla publicada en Google Sheets</b> — hoja "${result.hoja}"<br>
-          <a href="${SHEETS_URL}" target="_blank" style="color:#0F6E56;font-weight:500">Abrir Google Sheets →</a>
+        `<div class="ok-box share-cta approve-status">
+          <div><b>Malla aprobada y publicada</b> en la hoja “${result.hoja}”. Ya puedes enviarla al grupo.</div>
+          <div class="btn-row">
+            <button class="secondary pine sm" onclick="abrirShareActual()"><svg><use href="#i-image"/></svg>Imagen para WhatsApp</button>
+            <a class="btn sm" href="${SHEETS_URL}" target="_blank" rel="noopener">Abrir Sheets</a>
+          </div>
         </div>`
       );
     } else {
       throw new Error(result.error || 'Error desconocido del servidor');
     }
   } catch(err) {
-    historial.unshift(entry);
-    saveHistorial(historial);
-    mostrarNotificacion('⚠ Malla guardada localmente pero no se pudo publicar en Sheets: ' + err.message, 'warn');
+    upsertHistorialLocal(entry);
+    mostrarNotificacion('La malla quedó en el historial de este navegador, pero no llegó a Sheets: ' + err.message, 'warn');
+    document.querySelectorAll('#revisar-content .approve-status').forEach(el => el.remove());
     document.getElementById('revisar-content').insertAdjacentHTML('afterbegin',
-      `<div class="warn-box" style="margin-bottom:12px">
-        Malla guardada en el historial local, pero hubo un error al publicar en Sheets: ${err.message}<br>
-        Puedes intentarlo de nuevo desde el Historial → Exportar.
+      `<div class="warn-box share-cta approve-status">
+        <div><b>No se pudo publicar en Sheets</b> (${err.message}). La malla quedó guardada en el historial de este navegador; puedes reintentar desde Historial con “Publicar en Sheets”.</div>
+        <button class="secondary pine sm" onclick="abrirShareActual()"><svg><use href="#i-image"/></svg>Imagen para WhatsApp</button>
       </div>`
     );
   } finally {
-    if (btnAprobar) { btnAprobar.disabled = false; btnAprobar.textContent = 'Aprobar y publicar en Sheets'; }
+    if (btnAprobar) { btnAprobar.disabled = false; btnAprobar.textContent = 'Aprobar y publicar'; }
   }
+}
+
+// Guarda en el historial local reemplazando cualquier versión anterior de la
+// misma semana (antes cada aprobación agregaba un duplicado).
+function upsertHistorialLocal(entry) {
+  historial = historial.filter(h => !entry.fechaInicio || h.fechaInicio !== entry.fechaInicio);
+  historial.unshift(entry);
+  saveHistorial(historial);
 }
 
 function mostrarNotificacion(msg, tipo) {
   const n = document.createElement('div');
-  n.className = tipo === 'ok' ? 'ok-box' : 'warn-box';
-  n.style.cssText = 'position:fixed;bottom:20px;right:20px;max-width:380px;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,0.12)';
-  n.textContent = msg;
+  n.className = 'toast ' + (tipo === 'ok' ? 'ok-box' : 'warn-box');
+  n.setAttribute('role', 'status');
+  n.textContent = msg.replace(/^[✓⚠]\s*/, '');
   document.body.appendChild(n);
-  setTimeout(() => n.remove(), 5000);
+  setTimeout(() => n.remove(), tipo === 'ok' ? 4500 : 8000);
 }
 
 // ── Auto-guardado al cerrar/salir de la pestaña ─────────────────────────────
@@ -1876,8 +2128,10 @@ function mostrarNotificacion(msg, tipo) {
 // simplemente sobreescribe esta versión (siempre queda la última).
 function autoGuardarMallaPendiente() {
   if (!currentMallaData || mallaPublicadaEnSheets) return;
-  const fi = document.getElementById('fecha-inicio') && document.getElementById('fecha-inicio').value;
-  const ff = document.getElementById('fecha-fin') && document.getElementById('fecha-fin').value;
+  // Usa las fechas de la malla que se está revisando (puede venir del historial),
+  // no las del formulario de Configurar.
+  const fi = (mallaCtx && mallaCtx.fi) || (document.getElementById('fecha-inicio') && document.getElementById('fecha-inicio').value);
+  const ff = (mallaCtx && mallaCtx.ff) || (document.getElementById('fecha-fin') && document.getElementById('fecha-fin').value);
   if (!fi || !ff) return;
 
   const semana = currentMallaData.semana || (fi + ' - ' + ff);
@@ -1897,11 +2151,10 @@ function autoGuardarMallaPendiente() {
 
   // Refleja el guardado en el historial local para que la UI no quede desactualizada
   // si se reabre la app sin conexión antes de que Sheets confirme.
-  historial.unshift({
+  upsertHistorialLocal({
     id: Date.now(), fechaInicio: fi, fechaFin: ff, semana,
     data: currentMallaData, raw: currentMallaRaw, aprobada: payload.fechaAprobacion
   });
-  saveHistorial(historial);
   mallaPublicadaEnSheets = true;
 }
 
@@ -1929,7 +2182,7 @@ async function publicarDesdeHistorial(idx) {
   } catch(err) {
     mostrarNotificacion('Error: ' + err.message, 'warn');
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Publicar'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Publicar en Sheets'; }
   }
 }
 
@@ -1952,31 +2205,526 @@ async function probarConexion() {
   btn.disabled = false; btn.textContent = 'Probar conexión';
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// Fechas legibles
+// ═══════════════════════════════════════════════════════════════════════
+function isoLocal(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function sumarDiasISO(iso, n) {
+  const d = new Date(iso + 'T12:00:00');
+  d.setDate(d.getDate() + n);
+  return isoLocal(d);
+}
+// "16 – 22 nov 2026" · "28 sep – 4 oct 2026" · "29 dic 2025 – 4 ene 2026"
+function textoRangoSemana(fi, ff) {
+  if (!fi) return '';
+  const a = new Date(fi + 'T12:00:00');
+  const b = new Date((ff || sumarDiasISO(fi, 6)) + 'T12:00:00');
+  if (a.getFullYear() !== b.getFullYear()) return `${fmtCorto(a)} ${a.getFullYear()} – ${fmtCorto(b)} ${b.getFullYear()}`;
+  if (a.getMonth() !== b.getMonth()) return `${fmtCorto(a)} – ${fmtCorto(b)} ${b.getFullYear()}`;
+  return `${a.getDate()} – ${b.getDate()} ${MESES_CORTO[b.getMonth()]} ${b.getFullYear()}`;
+}
+// Para el encabezado de la imagen: "16 al 22 de noviembre" + año aparte
+function partesTituloSemana(fi, ff) {
+  const a = new Date(fi + 'T12:00:00');
+  const b = new Date((ff || sumarDiasISO(fi, 6)) + 'T12:00:00');
+  let titulo;
+  if (a.getMonth() === b.getMonth()) titulo = `${a.getDate()} al ${b.getDate()} de ${MESES_LARGO[b.getMonth()]}`;
+  else titulo = `${a.getDate()} de ${MESES_LARGO[a.getMonth()]} al ${b.getDate()} de ${MESES_LARGO[b.getMonth()]}`;
+  const anio = a.getFullYear() === b.getFullYear() ? String(b.getFullYear()) : `${a.getFullYear()}–${String(b.getFullYear()).slice(2)}`;
+  return {titulo, anio};
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// Festivos de Colombia (Ley 51 de 1983 "Ley Emiliani" + fechas de Pascua)
+// Sirve para sugerir los festivos al configurar la semana y para marcar
+// la columna de festivo en la malla y en la imagen.
+// ═══════════════════════════════════════════════════════════════════════
+const _festivosCache = {};
+function _pascua(y) {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4;
+  const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(y, mes - 1, dia, 12);
+}
+function festivosColombia(y) {
+  if (_festivosCache[y]) return _festivosCache[y];
+  const map = {};
+  const fijo = (m, d, n) => { map[isoLocal(new Date(y, m - 1, d, 12))] = n; };
+  const aLunes = (dt, n) => { const x = new Date(dt); const dow = x.getDay(); if (dow !== 1) x.setDate(x.getDate() + ((8 - dow) % 7)); map[isoLocal(x)] = n; };
+  const emiliani = (m, d, n) => aLunes(new Date(y, m - 1, d, 12), n);
+  const pascua = _pascua(y);
+  const desdePascua = (n) => { const x = new Date(pascua); x.setDate(x.getDate() + n); return x; };
+
+  fijo(1, 1, 'Año Nuevo');
+  emiliani(1, 6, 'Reyes Magos');
+  emiliani(3, 19, 'San José');
+  map[isoLocal(desdePascua(-3))] = 'Jueves Santo';
+  map[isoLocal(desdePascua(-2))] = 'Viernes Santo';
+  fijo(5, 1, 'Día del Trabajo');
+  map[isoLocal(desdePascua(43))] = 'Ascensión del Señor';
+  map[isoLocal(desdePascua(64))] = 'Corpus Christi';
+  map[isoLocal(desdePascua(71))] = 'Sagrado Corazón';
+  emiliani(6, 29, 'San Pedro y San Pablo');
+  fijo(7, 20, 'Independencia');
+  fijo(8, 7, 'Batalla de Boyacá');
+  emiliani(8, 15, 'Asunción de la Virgen');
+  emiliani(10, 12, 'Día de la Raza');
+  emiliani(11, 1, 'Todos los Santos');
+  emiliani(11, 11, 'Independencia de Cartagena');
+  fijo(12, 8, 'Inmaculada Concepción');
+  fijo(12, 25, 'Navidad');
+  _festivosCache[y] = map;
+  return map;
+}
+function nombreFestivo(iso) {
+  return festivosColombia(Number(iso.slice(0, 4)))[iso] || null;
+}
+// [{dia:'lunes', iso:'2026-11-16', nombre:'Independencia de Cartagena'}, …]
+function festivosColombiaEnSemana(fi) {
+  const out = [];
+  DIAS_ORDEN.forEach((dia, i) => {
+    const iso = sumarDiasISO(fi, i);
+    const n = nombreFestivo(iso);
+    if (n) out.push({dia, iso, nombre: n});
+  });
+  return out;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// Configurar semana: detección automática de fechas, festivos e inventario
+// ═══════════════════════════════════════════════════════════════════════
+function actualizarEtiquetaSemana() {
+  const fi = document.getElementById('fecha-inicio').value;
+  const ff = document.getElementById('fecha-fin').value;
+  document.getElementById('config-week-label').textContent = fi ? textoRangoSemana(fi, ff) : 'Elige el lunes';
+}
+
+function onFechaInicioCambiada() {
+  const fi = document.getElementById('fecha-inicio').value;
+  if (!fi) { actualizarEtiquetaSemana(); return; }
+  const dt = new Date(fi + 'T12:00:00');
+  if (isNaN(dt)) return;
+  setFecha('fecha-fin', sumarDiasISO(fi, 6));
+  aplicarDeteccionSemana(fi);
+  actualizarEtiquetaSemana();
+}
+
+function aplicarDeteccionSemana(fi) {
+  const notas = [];
+  const fest = festivosColombiaEnSemana(fi);
+  document.querySelectorAll('#festivos-days input').forEach(cb => {
+    cb.checked = fest.some(f => f.dia === cb.value);
+  });
+  fest.filter(f => f.dia !== 'domingo').forEach(f => {
+    notas.push(`el <b>${DIA_LABEL_PROMPT[f.dia].toLowerCase()} ${fmtCorto(f.iso)}</b> es festivo (${f.nombre})`);
+  });
+
+  const lunesSiguiente = sumarDiasISO(fi, 7);
+  const proxFest = nombreFestivo(lunesSiguiente);
+  document.getElementById('prox-semana-festivo').checked = !!proxFest;
+  if (proxFest) notas.push(`el lunes siguiente (${fmtCorto(lunesSiguiente)}) es festivo, así que Laura y Nohemy trabajan el domingo`);
+
+  const ini = new Date(fi + 'T12:00:00');
+  const fin = new Date(sumarDiasISO(fi, 6) + 'T12:00:00');
+  const finMes = new Date(ini.getFullYear(), ini.getMonth() + 1, 0, 12);
+  const hayInventario = finMes >= ini && finMes <= fin;
+  document.getElementById('es-inventario').value = hayInventario ? 'si' : 'no';
+  toggleInventarioDia();
+  if (hayInventario) notas.push(`el inventario de fin de mes cae en esta semana (${fmtCorto(finMes)})`);
+
+  const box = document.getElementById('detect-note');
+  if (notas.length) {
+    const txt = notas.join('; ');
+    box.innerHTML = `Según el calendario, ${txt}. Ya quedó marcado; revísalo si algo cambió.`;
+  } else {
+    box.innerHTML = '';
+  }
+}
+
+function irAGenerarProxima() {
+  const existente = historial.find(h => h.fechaInicio === PROX_LUNES_ISO && h.data);
+  if (existente) { verMallaHistorial(historial.indexOf(existente)); return; }
+  setFecha('fecha-inicio', PROX_LUNES_ISO);
+  onFechaInicioCambiada();
+  showPanel('generar');
+  switchTab('config');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// Inicio
+// ═══════════════════════════════════════════════════════════════════════
+function ultimaMallaHistorial() {
+  return historial.filter(h => h.data && h.data.turnos)
+    .reduce((best, h) => (!best || (h.fechaInicio || '') > (best.fechaInicio || '')) ? h : best, null);
+}
+
+let PROX_LUNES_ISO = null; // lunes de la próxima semana a planificar (se fija al iniciar)
+
+function renderDashboard() {
+  if (!PROX_LUNES_ISO) return;
+  const fi = PROX_LUNES_ISO, ff = sumarDiasISO(fi, 6);
+  const a = new Date(fi + 'T12:00:00'), b = new Date(ff + 'T12:00:00');
+  document.getElementById('hero-dates').innerHTML = `${a.getDate()}<span class="sep">–</span>${b.getDate()}`;
+  document.getElementById('hero-month').textContent = a.getMonth() === b.getMonth()
+    ? `${MESES_LARGO[a.getMonth()]} ${b.getFullYear()}`
+    : `${MESES_LARGO[a.getMonth()]} – ${MESES_LARGO[b.getMonth()]} ${b.getFullYear()}`;
+
+  const flags = [];
+  festivosColombiaEnSemana(fi).filter(f => f.dia !== 'domingo').forEach(f =>
+    flags.push(`<div class="flag festivo">${DIA_LABEL_PROMPT[f.dia]} ${a.getMonth() === new Date(f.iso + 'T12:00:00').getMonth() ? new Date(f.iso + 'T12:00:00').getDate() : fmtCorto(f.iso)} es festivo: ${f.nombre}</div>`));
+  const finMes = new Date(a.getFullYear(), a.getMonth() + 1, 0, 12);
+  if (finMes >= a && finMes <= b) flags.push(`<div class="flag inv">Inventario de fin de mes el ${DIA_LABEL_PROMPT[DIAS_ORDEN[(finMes.getDay() + 6) % 7]].toLowerCase()} ${finMes.getDate()}</div>`);
+  if (nombreFestivo(sumarDiasISO(fi, 7))) flags.push(`<div class="flag festivo">El lunes siguiente es festivo: Laura y Nohemy trabajan el domingo</div>`);
+  if (!flags.length) flags.push(`<div class="flag quiet">Semana normal, sin festivos ni inventario</div>`);
+  document.getElementById('hero-flags').innerHTML = flags.join('');
+
+  const yaExiste = historial.find(h => h.fechaInicio === fi && h.data);
+  const btn = document.querySelector('#panel-dashboard .hero-week button.primary');
+  if (btn) btn.innerHTML = yaExiste
+    ? '<svg><use href="#i-grid"/></svg>Abrir la malla de esta semana'
+    : '<svg><use href="#i-grid"/></svg>Generar malla de esta semana';
+
+  const ult = ultimaMallaHistorial();
+  const last = document.getElementById('hero-last');
+  if (ult) {
+    const idx = historial.indexOf(ult);
+    const n = Object.keys(ult.data.turnos || {}).length;
+    last.innerHTML = `
+      <div class="label">Última malla aprobada</div>
+      <div class="week">${ult.fechaInicio ? textoRangoSemana(ult.fechaInicio, ult.fechaFin) : ult.semana}</div>
+      <div class="meta">${n} personas${ult.aprobada ? `, aprobada el ${ult.aprobada}` : ''}</div>
+      <div class="actions">
+        <button class="secondary pine" onclick="abrirShareHistorial(${idx})"><svg><use href="#i-image"/></svg>Imagen para WhatsApp</button>
+        <button class="secondary" onclick="verMallaHistorial(${idx})">Abrir</button>
+      </div>`;
+  } else {
+    last.innerHTML = `<div class="label">Última malla aprobada</div><div class="meta">Todavía no hay mallas en el historial.</div>`;
+  }
+  const mh = document.getElementById('m-historial');
+  if (mh) mh.textContent = historial.filter(h => h.data).length;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// Historial
+// ═══════════════════════════════════════════════════════════════════════
 function renderHistorial() {
   const list = document.getElementById('historial-list');
-  if (!historial.length) {
-    list.innerHTML = '<div style="color:#888;font-size:13px;padding:20px 0">Aún no hay mallas aprobadas.</div>';
+  const items = historial.map((h, i) => ({h, i})).filter(x => x.h && x.h.data);
+  if (!items.length) {
+    list.innerHTML = '<p class="hint">Aún no hay mallas aprobadas. Genera y aprueba tu primera malla para verla aquí.</p>';
+    renderDashboard();
     return;
   }
-  list.innerHTML = historial.map((h,i) => `
-    <div class="history-item">
+  items.sort((x, y) => (y.h.fechaInicio || String(y.h.id)) > (x.h.fechaInicio || String(x.h.id)) ? 1 : -1);
+  let html = '', mesActual = null;
+  items.forEach(({h, i}) => {
+    const mes = h.fechaInicio
+      ? (() => { const d = new Date(h.fechaInicio + 'T12:00:00'); return MESES_LARGO[d.getMonth()].replace(/^./, c => c.toUpperCase()) + ' ' + d.getFullYear(); })()
+      : 'Sin fecha';
+    if (mes !== mesActual) { html += `<div class="hist-month">${mes}</div>`; mesActual = mes; }
+    const n = Object.keys(h.data.turnos || {}).length;
+    const fest = h.fechaInicio ? festivosColombiaEnSemana(h.fechaInicio).filter(f => f.dia !== 'domingo') : [];
+    const meta = [`${n} personas`];
+    if (fest.length) meta.push(`festivo el ${fest.map(f => DIA_LABEL_PROMPT[f.dia].toLowerCase()).join(' y ')}`);
+    if (h.aprobada) meta.push(`aprobada el ${h.aprobada}`);
+    html += `<div class="history-item">
       <div>
-        <div class="history-week">Semana del ${h.semana}</div>
-        <div class="history-meta">Aprobada el ${h.aprobada} · ${Object.keys(h.data.turnos || {}).length} empleados</div>
+        <div class="history-week">${h.fechaInicio ? textoRangoSemana(h.fechaInicio, h.fechaFin) : 'Semana del ' + h.semana}</div>
+        <div class="history-meta">${meta.join(', ')}</div>
       </div>
-      <div style="display:flex;gap:8px">
-        <button class="secondary" onclick="verMallaHistorial(${i})" style="font-size:12px;padding:6px 12px">Ver</button>
-        <button class="secondary" id="btn-pub-${i}" onclick="publicarDesdeHistorial(${i})" style="font-size:12px;padding:6px 12px;color:#185FA5;border-color:#B5D4F4">Publicar</button>
-        <button class="secondary" onclick="exportarCSVHistorial(${i})" style="font-size:12px;padding:6px 12px">Exportar</button>
+      <div class="history-actions">
+        <button class="secondary pine sm" onclick="abrirShareHistorial(${i})"><svg><use href="#i-image"/></svg>Imagen</button>
+        <button class="secondary sm" onclick="verMallaHistorial(${i})">Abrir</button>
+        <button class="ghost" id="btn-pub-${i}" onclick="publicarDesdeHistorial(${i})">Publicar en Sheets</button>
+        <button class="ghost" onclick="exportarCSVHistorial(${i})">Copiar</button>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  });
+  list.innerHTML = html;
+  renderDashboard();
 }
 
 function verMallaHistorial(idx) {
   currentMallaData = historial[idx].data;
   renderMallaReview(currentMallaData, historial[idx].fechaInicio, historial[idx].fechaFin);
   showPanel('generar');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// Imagen para WhatsApp
+// Dibuja la malla en un <canvas> (sin librerías externas) con la semana en
+// el encabezado, lista para compartir, copiar y pegar o descargar.
+// ═══════════════════════════════════════════════════════════════════════
+let shareState = null; // {data, fi, ff, festivos, invDia, blob, url, filename}
+
+const IMG_COLORES = {
+  D:{bg:'#F1EFE8', tx:'#5F5E5A'}, V:{bg:'#E6F1FB', tx:'#185FA5'}, F:{bg:'#FAEEDA', tx:'#854F0B'},
+  C:{bg:'#EEEDFE', tx:'#3C3489'}, INVENT:{bg:'#FCEBEB', tx:'#A32D2D'}, WORK:{bg:'#E1F5EE', tx:'#085041'}
+};
+
+async function cargarFuentesImagen() {
+  if (!document.fonts || !document.fonts.load) return;
+  try {
+    await Promise.all([
+      document.fonts.load('700 52px "Barlow Condensed"'),
+      document.fonts.load('600 26px "Barlow Condensed"'),
+      document.fonts.load('600 18px "Barlow Semi Condensed"'),
+      document.fonts.load('500 15px "Barlow Semi Condensed"'),
+      document.fonts.load('400 14px "Barlow Semi Condensed"')
+    ]);
+  } catch (e) { /* si no cargan, el canvas usa la fuente de respaldo */ }
+}
+
+function _roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function _fitText(ctx, txt, maxW, weight, size, family, min) {
+  let s = size;
+  ctx.font = `${weight} ${s}px ${family}`;
+  while (ctx.measureText(txt).width > maxW && s > (min || 10)) { s -= 0.5; ctx.font = `${weight} ${s}px ${family}`; }
+  return s;
+}
+
+function dibujarMallaCanvas(st, opts) {
+  const SANS = '"Barlow Semi Condensed", system-ui, sans-serif';
+  const COND = '"Barlow Condensed", "Barlow Semi Condensed", system-ui, sans-serif';
+  const PINE = '#173A33', INK = '#18221F', MUTED = '#5C6A64', LINE = '#E3E8E0', TAPE = '#F4B223';
+  const filas = Object.entries(st.data.turnos || {});
+  const showH = opts.horas, showC = opts.cargo;
+
+  const PAD = 28, NAME_W = 236, DAY_W = 124, H_W = showH ? 74 : 0;
+  const HEAD_H = 132, TAPE_H = 6, COLHEAD_H = 66, ROW_H = showC ? 62 : 54, FOOT_H = 70;
+  const W = PAD * 2 + NAME_W + DAY_W * 7 + H_W;
+  const H = HEAD_H + TAPE_H + 18 + COLHEAD_H + ROW_H * filas.length + 14 + FOOT_H;
+  const SCALE = 2;
+
+  const cv = document.createElement('canvas');
+  cv.width = W * SCALE; cv.height = H * SCALE;
+  const ctx = cv.getContext('2d');
+  ctx.scale(SCALE, SCALE);
+  ctx.textBaseline = 'middle';
+
+  // Fondo
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, W, H);
+
+  // Encabezado con la semana
+  ctx.fillStyle = PINE; ctx.fillRect(0, 0, W, HEAD_H);
+  ctx.fillStyle = TAPE; ctx.fillRect(0, HEAD_H, W, TAPE_H);
+  const {titulo, anio} = partesTituloSemana(st.fi, st.ff);
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#A9C2B8'; ctx.font = `600 20px ${SANS}`;
+  ctx.fillText('Malla de turnos de la semana', PAD, 40);
+  ctx.fillStyle = '#FFFFFF';
+  _fitText(ctx, titulo, W - PAD * 2 - 260, 700, 56, COND, 30);
+  ctx.fillText(titulo, PAD - 1, 88);
+  ctx.textAlign = 'right';
+  ctx.fillStyle = TAPE; ctx.font = `700 56px ${COND}`;
+  ctx.fillText(anio, W - PAD, 88);
+  ctx.fillStyle = '#A9C2B8'; ctx.font = `600 18px ${SANS}`;
+  ctx.fillText('Abastecimiento · El Buen Gusto', W - PAD, 40);
+
+  // Encabezados de día
+  let y = HEAD_H + TAPE_H + 18;
+  const x0 = PAD, xDias = PAD + NAME_W, xH = xDias + DAY_W * 7;
+  const festDias = {}; (st.festivos || []).forEach(f => { festDias[f.dia] = f; });
+
+  // Columnas resaltadas (festivo / inventario / domingo) de arriba a abajo
+  const colTop = y, colBottom = y + COLHEAD_H + ROW_H * filas.length;
+  DIAS_ORDEN.forEach((d, i) => {
+    const cx = xDias + DAY_W * i;
+    let fill = null;
+    if (festDias[d]) fill = '#FFF6DF';
+    else if (d === st.invDia) fill = '#FFF4F4';
+    else if (d === 'domingo') fill = '#F6F8F4';
+    if (fill) { ctx.fillStyle = fill; ctx.fillRect(cx, colTop, DAY_W, colBottom - colTop); }
+  });
+
+  ctx.textAlign = 'left'; ctx.fillStyle = MUTED; ctx.font = `600 15px ${SANS}`;
+  ctx.fillText('Empleado', x0 + 4, y + COLHEAD_H / 2 + 8);
+  DIAS_ORDEN.forEach((d, i) => {
+    const cx = xDias + DAY_W * i + DAY_W / 2;
+    const fecha = fechaDia(st.fi, i);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = MUTED; ctx.font = `600 14px ${SANS}`;
+    ctx.fillText(DIA_LABEL_PROMPT[d], cx, y + 12);
+    ctx.fillStyle = PINE; ctx.font = `700 28px ${COND}`;
+    ctx.fillText(String(fecha.getDate()), cx, y + 34);
+    const tag = festDias[d] ? {t:'Festivo', bg:TAPE, tx:'#2B2100'} : (d === st.invDia ? {t:'Inventario', bg:'#FCEBEB', tx:'#A32D2D'} : null);
+    if (tag) {
+      ctx.font = `700 12px ${SANS}`;
+      const tw = ctx.measureText(tag.t).width + 14;
+      ctx.fillStyle = tag.bg; _roundRect(ctx, cx - tw / 2, y + 47, tw, 17, 8.5); ctx.fill();
+      ctx.fillStyle = tag.tx; ctx.fillText(tag.t, cx, y + 55.5);
+    }
+  });
+  if (showH) {
+    ctx.textAlign = 'center'; ctx.fillStyle = MUTED; ctx.font = `600 14px ${SANS}`;
+    ctx.fillText('Horas', xH + H_W / 2, y + COLHEAD_H / 2 + 8);
+  }
+  y += COLHEAD_H + 6;
+  ctx.fillStyle = PINE; ctx.fillRect(x0, y - 4, W - PAD * 2, 2);
+
+  // Filas
+  const tiposUsados = new Set();
+  filas.forEach(([nombre, turnos], r) => {
+    const ry = y + ROW_H * r;
+    if (r > 0) { ctx.fillStyle = LINE; ctx.fillRect(x0, ry, W - PAD * 2, 1); }
+    const emp = empleadoDeFila(nombre) || {};
+    ctx.textAlign = 'left'; ctx.fillStyle = INK;
+    const nom = nombreBonito(nombre);
+    _fitText(ctx, nom, NAME_W - 14, 600, 19, SANS, 13);
+    if (showC && emp.cargo) {
+      ctx.fillText(nom, x0 + 4, ry + ROW_H / 2 - 9);
+      ctx.fillStyle = MUTED; _fitText(ctx, emp.cargo, NAME_W - 14, 400, 14, SANS, 11);
+      ctx.fillText(emp.cargo, x0 + 4, ry + ROW_H / 2 + 12);
+    } else {
+      ctx.fillText(nom, x0 + 4, ry + ROW_H / 2);
+    }
+
+    let total = 0;
+    DIAS_ORDEN.forEach((d, i) => {
+      const t = turnos[d];
+      total += parsearHorasNetas(t || {});
+      const c = resolverCelda(t);
+      const col = IMG_COLORES[c.tipo] || IMG_COLORES.WORK;
+      tiposUsados.add(c.tipo);
+      const cx = xDias + DAY_W * i;
+      ctx.fillStyle = col.bg;
+      _roundRect(ctx, cx + 5, ry + 6, DAY_W - 10, ROW_H - 12, 8); ctx.fill();
+      ctx.fillStyle = col.tx; ctx.textAlign = 'center';
+      const esTurno = c.tipo === 'WORK' || c.tipo === 'INVENT';
+      if (c.linea2) {
+        _fitText(ctx, c.linea1, DAY_W - 22, esTurno ? 700 : 500, 19, SANS, 12);
+        ctx.fillText(c.linea1, cx + DAY_W / 2, ry + ROW_H / 2 - 8);
+        ctx.font = `500 13px ${SANS}`;
+        ctx.fillText(c.linea2, cx + DAY_W / 2, ry + ROW_H / 2 + 12);
+      } else {
+        _fitText(ctx, c.linea1, DAY_W - 22, esTurno ? 700 : 500, esTurno ? 19 : 16, SANS, 12);
+        ctx.fillText(c.linea1, cx + DAY_W / 2, ry + ROW_H / 2 + 1);
+      }
+    });
+    if (showH) {
+      ctx.textAlign = 'center'; ctx.fillStyle = '#0F6E56'; ctx.font = `700 22px ${COND}`;
+      ctx.fillText(`${total} h`, xH + H_W / 2, ry + ROW_H / 2 + 1);
+    }
+  });
+
+  // Pie: convenciones + fecha de generación
+  const fy = y + ROW_H * filas.length + 14;
+  ctx.fillStyle = LINE; ctx.fillRect(x0, fy, W - PAD * 2, 1);
+  const leyenda = [['WORK','Turno'],['D','Descanso'],['V','Vacaciones'],['F','Día familia'],['C','Compensatorio'],['INVENT','Inventario']]
+    .filter(([k]) => k === 'WORK' || k === 'D' || tiposUsados.has(k));
+  let lx = x0 + 2;
+  ctx.textAlign = 'left'; ctx.font = `500 15px ${SANS}`;
+  leyenda.forEach(([k, txt]) => {
+    ctx.fillStyle = IMG_COLORES[k].bg; _roundRect(ctx, lx, fy + 26, 18, 18, 4); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,.08)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = MUTED; ctx.fillText(txt, lx + 25, fy + 36);
+    lx += 25 + ctx.measureText(txt).width + 22;
+  });
+  if (st.festivos && st.festivos.length) {
+    const nf = st.festivos.filter(f => f.dia !== 'domingo' && f.iso).map(f => `${DIA_LABEL_PROMPT[f.dia].toLowerCase()} ${new Date(f.iso + 'T12:00:00').getDate()}: ${f.nombre}`);
+    if (nf.length) { ctx.fillStyle = '#7A5A00'; ctx.fillText('Festivo ' + nf.join(', '), lx + 6, fy + 36); }
+  }
+  ctx.textAlign = 'right'; ctx.fillStyle = '#8A9690'; ctx.font = `400 14px ${SANS}`;
+  ctx.fillText('Generada el ' + fmtLargo(new Date()), W - PAD, fy + 36);
+
+  return cv;
+}
+
+async function abrirShareMalla(data, fi, ff, festivos, invDia) {
+  if (!data || !data.turnos) { mostrarNotificacion('No hay malla para convertir en imagen.', 'warn'); return; }
+  if (!fi) { mostrarNotificacion('Esta malla no tiene fecha de inicio; no se puede armar el encabezado.', 'warn'); return; }
+  if (shareState && shareState.url) URL.revokeObjectURL(shareState.url);
+  const {titulo, anio} = partesTituloSemana(fi, ff);
+  const a = new Date(fi + 'T12:00:00');
+  shareState = {
+    data, fi, ff: ff || sumarDiasISO(fi, 6), festivos: festivos || festivosColombiaEnSemana(fi),
+    invDia: invDia || detectarDiaInventario(data),
+    filename: `malla-turnos-${a.getDate()}-${MESES_CORTO[a.getMonth()]}-${a.getFullYear()}.png`,
+    titulo: `Malla de turnos del ${titulo} de ${anio}`
+  };
+  document.getElementById('share-sub').textContent = `Semana del ${titulo} de ${anio}`;
+  document.getElementById('share-status').textContent = '';
+  document.getElementById('share-preview').innerHTML = '<span class="spinner"></span> Creando imagen…';
+  const dlg = document.getElementById('share-dialog');
+  if (!dlg.open) dlg.showModal();
+  await redibujarShare();
+}
+
+async function redibujarShare() {
+  if (!shareState) return;
+  await cargarFuentesImagen();
+  const cv = dibujarMallaCanvas(shareState, {
+    horas: document.getElementById('share-horas').checked,
+    cargo: document.getElementById('share-cargo').checked
+  });
+  const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
+  if (shareState.url) URL.revokeObjectURL(shareState.url);
+  shareState.blob = blob;
+  shareState.url = URL.createObjectURL(blob);
+  document.getElementById('share-preview').innerHTML = `<img src="${shareState.url}" alt="${shareState.titulo}">`;
+
+  const file = new File([blob], shareState.filename, {type: 'image/png'});
+  const puedeCompartir = !!(navigator.canShare && navigator.canShare({files: [file]}));
+  document.getElementById('btn-compartir-img').hidden = !puedeCompartir;
+  document.getElementById('btn-copiar-img').hidden = !(navigator.clipboard && window.ClipboardItem);
+}
+
+function abrirShareActual() {
+  if (!currentMallaData) return;
+  const ctx = mallaCtx || construirMallaCtx(currentMallaData, document.getElementById('fecha-inicio').value, document.getElementById('fecha-fin').value);
+  abrirShareMalla(currentMallaData, ctx.fi, ctx.ff, ctx.festivos, ctx.invDia);
+}
+
+function abrirShareHistorial(idx) {
+  const h = historial[idx];
+  if (!h) return;
+  abrirShareMalla(h.data, h.fechaInicio, h.fechaFin);
+}
+
+async function compartirImagenMalla() {
+  if (!shareState || !shareState.blob) return;
+  const file = new File([shareState.blob], shareState.filename, {type: 'image/png'});
+  try {
+    await navigator.share({files: [file], title: shareState.titulo});
+    document.getElementById('share-status').textContent = 'Listo.';
+  } catch (e) {
+    if (e.name !== 'AbortError') document.getElementById('share-status').textContent = 'No se pudo compartir. Usa Descargar o Copiar imagen.';
+  }
+}
+
+async function copiarImagenMalla() {
+  if (!shareState || !shareState.blob) return;
+  const st = document.getElementById('share-status');
+  try {
+    await navigator.clipboard.write([new ClipboardItem({'image/png': shareState.blob})]);
+    st.textContent = 'Imagen copiada. Pégala en el chat de WhatsApp con Ctrl+V.';
+  } catch (e) {
+    st.textContent = 'Este navegador no deja copiar imágenes. Usa Descargar.';
+  }
+}
+
+function descargarImagenMalla() {
+  if (!shareState || !shareState.url) return;
+  const a = document.createElement('a');
+  a.href = shareState.url; a.download = shareState.filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  document.getElementById('share-status').textContent = 'Descargada como ' + shareState.filename;
+}
+
+function cerrarShare() {
+  const dlg = document.getElementById('share-dialog');
+  if (dlg.open) dlg.close();
 }
 
 function exportarCSV() {
@@ -2045,15 +2793,26 @@ const nextMonday = new Date(today);
 nextMonday.setDate(today.getDate() + daysToMonday);
 const nextSunday = new Date(nextMonday);
 nextSunday.setDate(nextMonday.getDate() + 6);
-const fmt = d => d.toISOString().split('T')[0];
-setFecha('fecha-inicio', fmt(nextMonday));
-setFecha('fecha-fin', fmt(nextSunday));
+const fmt = d => isoLocal(d); // fecha local (toISOString usaba UTC y podía correr el día en la noche)
+PROX_LUNES_ISO = fmt(nextMonday);
+setFecha('fecha-inicio', PROX_LUNES_ISO);
+onFechaInicioCambiada(); // fija el domingo y sugiere festivos/inventario según el calendario
 
 const weekStr = fmtCorto(nextMonday) + ' – ' + fmtCorto(nextSunday);
 document.getElementById('m-semana').textContent = weekStr;
 
 const ultimoDiaMes = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-document.getElementById('m-inventario').textContent = fmtCorto(ultimoDiaMes);
+document.getElementById('m-inventario').textContent =
+  DIA_LABEL_PROMPT[DIAS_ORDEN[(ultimoDiaMes.getDay() + 6) % 7]].slice(0, 3).toLowerCase() + ' ' + fmtCorto(ultimoDiaMes);
+
+// Cerrar diálogos con clic fuera del contenido
+document.querySelectorAll('dialog').forEach(dlg => {
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+});
+document.getElementById('editor-search').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); aplicarEdicionTurno(); }
+  if (e.key === 'ArrowDown') { e.preventDefault(); document.getElementById('editor-select').focus(); }
+});
 
 renderEmpleados();
 renderHistorial();
