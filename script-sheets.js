@@ -34,15 +34,7 @@ function calcHorasNetas(t) {
   const cod = String(t.codigo || '');
   if (['D','V','F','C'].includes(cod)) return 0;
   if (cod === 'INVENT' || cod === 'INV') return t.horas || 7;
-  const parseH = function(s) {
-    if (!s || s === '-' || s === '?') return null;
-    const m = s.match(/^(\d+)(am|pm)$/i);
-    if (!m) return null;
-    let h = parseInt(m[1]);
-    if (m[2].toLowerCase() === 'pm' && h !== 12) h += 12;
-    if (m[2].toLowerCase() === 'am' && h === 12) h = 0;
-    return h;
-  };
+  const parseH = horaDecimalIA; // acepta horas con minutos ("2:30am"), no solo en punto
   const hi = parseH(t.entrada);
   const hs = parseH(t.salida);
   if (hi !== null && hs !== null && hs > hi) {
@@ -576,49 +568,136 @@ function getConfigTurnos() {
 // Nombre de la propiedad: ANTHROPIC_API_KEY
 // Consíguela en: console.anthropic.com → API Keys
 // ============================================================
-// ── Schema forzado del JSON de la malla (tool use) ──────────────────────────
-// En vez de confiar en la instrucción de texto "responde solo con JSON" (que
-// a veces la IA rompe agregando prosa antes/después), usamos "tool use" de la
-// API de Anthropic con tool_choice forzado: la API garantiza a nivel de
-// esquema que el bloque tool_use.input tiene esta forma exacta — ya no hay
-// que extraer JSON de un texto libre para el camino feliz.
-const DIA_SCHEMA_MALLA = {
+// Modelo y nivel de razonamiento de la generación de mallas.
+// - MODELO_IA: Claude Sonnet 5.5. Cambiarlo impacta costo y calidad — ver CLAUDE.md.
+// - ESFUERZO_IA: cuánto "piensa" el modelo antes de responder ('low' | 'medium' | 'high').
+//   'medium' es el punto de equilibrio para cuadrar descansos + horas. Si la
+//   generación llegara a fallar por tiempo de espera (UrlFetchApp corta las
+//   peticiones muy largas), bájalo a 'low'; si quieres que razone más, 'high'.
+const MODELO_IA = 'claude-sonnet-5-5';
+const ESFUERZO_IA = 'medium';
+// El razonamiento del modelo también gasta de este tope, por eso es amplio
+// aunque la malla en sí ocupe poco.
+const MAX_TOKENS_IA = 16000;
+
+// ── Formato de salida garantizado (structured outputs) ──────────────────────
+// Sonnet 5.5 ya no acepta "tool_choice" forzado (devuelve error 400), que era
+// como antes se garantizaba el JSON. Ahora se usa output_config.format con un
+// JSON Schema: la API garantiza que la respuesta cumple este esquema exacto.
+//
+// El esquema es COMPACTO a propósito: cada día es un texto corto
+// ("8am-5pm+alm", "6am-2pm", "D"…) en vez de un objeto con 5 campos. Así el
+// modelo escribe ~3 veces menos, responde más rápido y no puede equivocarse
+// calculando el campo "horas" — las horas las calcula este script.
+// expandirMallaCompacta() lo convierte al formato de siempre que usa index.html.
+const DIAS_IA = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+
+const FILA_MALLA_SCHEMA = {
   type: 'object',
-  required: ['codigo', 'entrada', 'salida', 'horas', 'almuerzo'],
+  additionalProperties: false,
+  required: ['empleado'].concat(DIAS_IA).concat(['fijados']),
   properties: {
-    codigo: { type: 'string' },
-    entrada: { type: 'string' },
-    salida: { type: 'string' },
-    horas: { type: 'number' },
-    almuerzo: { type: 'boolean' }
+    empleado: { type: 'string', description: 'Nombre completo, escrito igual que en la lista del equipo' },
+    lunes: { type: 'string' }, martes: { type: 'string' }, miercoles: { type: 'string' },
+    jueves: { type: 'string' }, viernes: { type: 'string' }, sabado: { type: 'string' }, domingo: { type: 'string' },
+    fijados: {
+      type: 'array',
+      items: { type: 'string', enum: DIAS_IA },
+      description: 'Días de esta persona cuyo turno quedó definido de forma explícita por las novedades de la semana (o por su horario fijo) y que por eso no deben ajustarse después. Vacío si ninguno.'
+    }
   }
 };
 
-const MALLA_INPUT_SCHEMA = {
+const MALLA_OUTPUT_SCHEMA = {
   type: 'object',
-  required: ['semana', 'turnos', 'advertencias', 'resumen'],
+  additionalProperties: false,
+  required: ['turnos', 'advertencias', 'resumen'],
   properties: {
-    semana: { type: 'string', description: 'Ej: "27 Jul - 2 Ago 2026"' },
-    turnos: {
-      type: 'object',
-      description: 'Una entrada por cada empleado activo (clave = nombre completo), con su horario de lunes a domingo',
-      additionalProperties: {
-        type: 'object',
-        required: ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo', 'total_horas'],
-        properties: {
-          lunes: DIA_SCHEMA_MALLA, martes: DIA_SCHEMA_MALLA, miercoles: DIA_SCHEMA_MALLA, jueves: DIA_SCHEMA_MALLA,
-          viernes: DIA_SCHEMA_MALLA, sabado: DIA_SCHEMA_MALLA, domingo: DIA_SCHEMA_MALLA,
-          total_horas: { type: 'number' }
-        }
-      }
-    },
+    turnos: { type: 'array', items: FILA_MALLA_SCHEMA, description: 'Una fila por cada persona del equipo, en el mismo orden de la lista' },
     advertencias: {
       type: 'array', items: { type: 'string' },
-      description: 'Cualquier conflicto, excepción o explicación va AQUÍ como texto — nunca fuera de la estructura'
+      description: 'Solo conflictos reales que el coordinador deba revisar (una novedad que no se pudo cumplir, alguien que no llega a su meta). Vacío si no hay.'
     },
-    resumen: { type: 'string' }
+    resumen: { type: 'string', description: 'Dos o tres frases: quién descansa qué día y qué novedades se aplicaron' }
   }
 };
+
+const SISTEMA_IA = [
+  'Eres el planificador de turnos del Departamento de Abastecimiento de El Buen Gusto.',
+  '',
+  'Escribe el turno de cada día como un texto corto, con uno de estos formatos exactos:',
+  '- Turno de trabajo sin almuerzo: "6am-2pm"',
+  '- Turno de trabajo con 1 hora de almuerzo (no cuenta como hora laboral): "8am-5pm+alm"',
+  '- Descanso: "D" · Vacaciones: "V" · Día de la familia: "F" · Compensatorio: "C"',
+  '- Inventario de fin de mes: "INV 6am-1pm"',
+  'Las horas se escriben en formato 12 horas, en punto o con minutos: "7am", "2:30am", "12am" (medianoche), "12pm" (mediodía). Usa "12am", nunca "12:01am".',
+  'Las horas laborales de un turno son salida menos entrada, menos 1 si lleva "+alm". Ejemplos: "8am-5pm+alm" = 8 h · "8am-4pm+alm" = 7 h · "6am-2pm" = 8 h · "8am-12pm" = 4 h · "12am-8am" = 8 h.',
+  'Antes de responder, suma las horas de cada persona y comprueba que coinciden con su meta.'
+].join('\n');
+
+// "8am" / "2:30am" / "12pm" → horas en decimal (0–24). null si no es una hora válida.
+function horaDecimalIA(s) {
+  const m = String(s || '').trim().toLowerCase().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/);
+  if (!m) return null;
+  let h = parseInt(m[1], 10);
+  const min = m[2] ? parseInt(m[2], 10) / 60 : 0;
+  if (h < 1 || h > 12) return null;
+  if (m[3] === 'pm' && h !== 12) h += 12;
+  if (m[3] === 'am' && h === 12) h = 0;
+  return h + min;
+}
+
+function limpiarHoraIA(s) {
+  return String(s || '').trim().toLowerCase().replace(/\s+/g, '').replace(/:00(?=am|pm)/, '');
+}
+
+// Texto compacto de un día → objeto {codigo, entrada, salida, horas, almuerzo}
+// (el formato que index.html y escribirMalla() han usado siempre).
+function celdaDesdeTextoIA(txt) {
+  const s = String(txt || '').trim();
+  const up = s.toUpperCase();
+  if (up === 'D' || up === 'V' || up === 'F' || up === 'C') {
+    return { codigo: up, entrada: '-', salida: '-', horas: 0, almuerzo: false };
+  }
+  const m = s.match(/([\d:]+\s*[ap]m)\s*[-–]\s*([\d:]+\s*[ap]m)/i);
+  const entrada = m ? limpiarHoraIA(m[1]) : null;
+  const salida = m ? limpiarHoraIA(m[2]) : null;
+  const hi = horaDecimalIA(entrada), hs = horaDecimalIA(salida);
+  const bruto = (hi !== null && hs !== null && hs > hi) ? hs - hi : null;
+
+  if (up.indexOf('INV') === 0) {
+    return { codigo: 'INVENT', entrada: entrada || '6am', salida: salida || '1pm', horas: bruto !== null ? bruto : 7, almuerzo: false };
+  }
+  if (bruto === null) return null; // texto que no se pudo interpretar
+  const almuerzo = /\+\s*a/i.test(s);
+  // 'T' = turno de trabajo sin código de catálogo asignado todavía; index.html
+  // le pone el código del catálogo que tenga ese mismo horario.
+  return { codigo: 'T', entrada: entrada, salida: salida, horas: almuerzo ? bruto - 1 : bruto, almuerzo: almuerzo };
+}
+
+function expandirMallaCompacta(obj) {
+  const turnos = {}, fijados = {};
+  const advertencias = (obj.advertencias || []).slice();
+  (obj.turnos || []).forEach(function(fila) {
+    const nombre = String(fila.empleado || '').trim();
+    if (!nombre) return;
+    const row = {};
+    let total = 0;
+    DIAS_IA.forEach(function(dia) {
+      let c = celdaDesdeTextoIA(fila[dia]);
+      if (!c) {
+        advertencias.push(nombre + ' · ' + dia + ': la IA escribió "' + fila[dia] + '" y no se pudo interpretar; quedó como descanso, revísalo.');
+        c = { codigo: 'D', entrada: '-', salida: '-', horas: 0, almuerzo: false };
+      }
+      row[dia] = c;
+      total += c.horas;
+    });
+    row.total_horas = total;
+    turnos[nombre] = row;
+    fijados[nombre] = (fila.fijados || []).filter(function(d) { return DIAS_IA.indexOf(d) >= 0; });
+  });
+  return { semana: obj.semana || '', turnos: turnos, fijados: fijados, advertencias: advertencias, resumen: obj.resumen || '' };
+}
 
 function generarConIA(payload) {
   const apiKey = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
@@ -627,15 +706,16 @@ function generarConIA(payload) {
   }
 
   const body = {
-    model: 'claude-sonnet-5',
-    max_tokens: 4096,
+    model: MODELO_IA,
+    max_tokens: MAX_TOKENS_IA,
+    system: SISTEMA_IA,
     messages: [{ role: 'user', content: payload.prompt }],
-    tools: [{
-      name: 'generar_malla',
-      description: 'Registra la malla de turnos semanal generada, con sus advertencias y resumen.',
-      input_schema: MALLA_INPUT_SCHEMA
-    }],
-    tool_choice: { type: 'tool', name: 'generar_malla' }
+    // El razonamiento ("thinking") va activado por defecto en este modelo; no se
+    // envía el parámetro. La profundidad se controla con effort.
+    output_config: {
+      effort: ESFUERZO_IA,
+      format: { type: 'json_schema', schema: MALLA_OUTPUT_SCHEMA }
+    }
   };
 
   const options = {
@@ -654,21 +734,37 @@ function generarConIA(payload) {
     const statusCode = response.getResponseCode();
     const rawText = response.getContentText();
     Logger.log('HTTP Status: ' + statusCode);
-    Logger.log('Respuesta cruda: ' + rawText);
     const data = JSON.parse(rawText);
     if (data.error) return respuesta({ ok: false, error: '[' + statusCode + '] ' + JSON.stringify(data.error) });
 
-    const toolUse = (data.content || []).find(c => c.type === 'tool_use');
-    if (toolUse && toolUse.input) {
-      return respuesta({ ok: true, malla: toolUse.input });
+    Logger.log('stop_reason: ' + data.stop_reason + ' · uso: ' + JSON.stringify(data.usage || {}));
+
+    // El modelo puede negarse (muy raro en este uso) o quedarse sin espacio:
+    // en ambos casos el contenido no es una malla válida, así que se informa claro.
+    if (data.stop_reason === 'refusal') {
+      return respuesta({ ok: false, error: 'El modelo no generó la malla (respuesta rechazada por sus filtros de seguridad). Revisa el texto de las novedades de la semana y vuelve a intentar.' });
     }
-    // Fallback defensivo — con tool_choice forzado esto no debería pasar, pero
-    // si llegara a faltar el tool_use devolvemos el texto plano para que el
-    // cliente intente su lógica de respaldo (extraerJSON) en vez de fallar en seco.
-    const text = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '';
-    return respuesta({ ok: true, text: text });
+    if (data.stop_reason === 'max_tokens') {
+      return respuesta({ ok: false, error: 'La respuesta de la IA quedó incompleta (se acabó el espacio de respuesta). Vuelve a intentar; si se repite, sube MAX_TOKENS_IA o baja ESFUERZO_IA en el Apps Script.' });
+    }
+
+    // La respuesta puede empezar con bloques de razonamiento; la malla viene en el bloque de texto.
+    const bloque = (data.content || []).filter(function(c) { return c.type === 'text'; }).pop();
+    const texto = bloque ? bloque.text : '';
+    try {
+      const malla = expandirMallaCompacta(JSON.parse(texto));
+      return respuesta({ ok: true, malla: malla, modelo: data.model });
+    } catch (e) {
+      // No debería pasar con el esquema garantizado; se devuelve el texto para
+      // que index.html intente su extracción de respaldo en vez de fallar en seco.
+      return respuesta({ ok: true, text: texto });
+    }
   } catch(err) {
-    return respuesta({ ok: false, error: 'Error llamando a Claude: ' + err.toString() });
+    const msg = err.toString();
+    if (/timed? ?out|tiempo/i.test(msg)) {
+      return respuesta({ ok: false, error: 'La IA tardó demasiado en responder. Vuelve a intentar; si se repite, cambia ESFUERZO_IA a \'low\' en el Apps Script.' });
+    }
+    return respuesta({ ok: false, error: 'Error llamando a Claude: ' + msg });
   }
 }
 
@@ -714,23 +810,25 @@ function testConexion() {
   Logger.log('Hojas existentes: ' + ss.getSheets().map(s => s.getName()).join(', '));
 }
 
-// Simula la llamada que hace index.html — ejecuta esto y revisa el Log
+// Prueba la generación con IA de punta a punta — ejecútala desde el editor
+// (menú de funciones → testGenerarMalla → Ejecutar) y revisa el registro.
+// Hazlo cada vez que cambies MODELO_IA o ESFUERZO_IA, ANTES de implementar la
+// nueva versión: confirma que la API acepta la petición y cuánto tarda.
 function testGenerarMalla() {
-  const payload = {
-    action: 'generarMalla',
-    prompt: 'Responde solo con la palabra: OK'
-  };
-
-  // 1. Verifica que el case existe
-  Logger.log('Acción recibida: ' + payload.action);
-
-  // 2. Verifica la API key
   const apiKey = PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
-  Logger.log('ANTHROPIC_API_KEY configurada: ' + (apiKey ? 'SÍ (' + apiKey.substring(0, 10) + '...)' : 'NO — falta configurarla'));
-
+  Logger.log('ANTHROPIC_API_KEY configurada: ' + (apiKey ? 'SÍ' : 'NO — falta configurarla'));
   if (!apiKey) return;
 
-  // 3. Prueba la llamada a Claude
+  const payload = {
+    action: 'generarMalla',
+    prompt: 'Malla de prueba para la semana del lunes 5 al domingo 11 de enero.\n' +
+      'Equipo: Ana Pérez (Auxiliar), meta 42 h; Luis Gómez (Conductor), meta 42 h.\n' +
+      'Todos descansan el domingo. Lunes 6am-2pm sin almuerzo; martes a viernes 8am-5pm con almuerzo; ' +
+      'el sábado completa las horas que falten para la meta. Novedad: Luis Gómez descansa el miércoles.'
+  };
+
+  const inicio = Date.now();
   const resultado = generarConIA(payload);
+  Logger.log('Modelo: ' + MODELO_IA + ' · esfuerzo: ' + ESFUERZO_IA + ' · tardó ' + Math.round((Date.now() - inicio) / 1000) + ' s');
   Logger.log('Respuesta: ' + resultado.getContent());
 }
